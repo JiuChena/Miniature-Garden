@@ -1,0 +1,391 @@
+  ---
+  整体结构
+
+  配置层（ScriptableObject）
+  └── AchievementDataSO    ← 成就定义（单条件/奖励/稀有度）
+
+  持久化层（MessagePack）
+  └── AchievementSaveData  ← 已解锁列表 + 各成就当前进度
+
+  运行时系统
+  ├── AchievementManager         ← 状态管理，自动检测解锁
+  └── AchievementConditionTracker ← 订阅游戏事件，推进进度
+
+  UI
+  ├── AchievementPopup    ← 解锁时右下角弹出通知（可队列堆叠）
+  └── AchievementPanel    ← 成就图鉴（筛选/查看进度）
+
+  ---
+  一、配置层
+
+  [CreateAssetMenu(menuName = "TPS/Achievement/AchievementData")]
+  public class AchievementDataSO : ScriptableObject
+  {
+      public string achievementID;
+      public string displayName;
+      [TextArea] public string description;
+      public Sprite icon;
+      public AchievementRarity rarity;    // Common / Rare / Epic / Legendary
+
+      public AchievementCondition condition;
+      public AchievementReward reward;
+  }
+
+  [System.Serializable]
+  public class AchievementCondition
+  {
+      public QuestConditionType type;     // 复用任务系统的枚举
+      public string targetID;             // 空字符串 = 匹配任意目标
+      public int requiredCount;
+      public string progressText;         // "{0}/{1} 个敌人已击杀"
+  }
+
+  [System.Serializable]
+  public class AchievementReward
+  {
+      public int currency;
+      public ItemInfo[] items;
+      public int[] itemCounts;
+  }
+
+  public enum AchievementRarity { Common, Rare, Epic, Legendary }
+
+  ▎ 空 targetID 的语义："击杀任意50个敌人" 的 targetID 为空，匹配所有击杀事件。"击杀50个精英守卫" 的 targetID 为 "enemy_elite_guard"，只计这种敌人。
+
+  ---
+  二、持久化层
+
+  [MessagePackObject]
+  public class AchievementSaveData
+  {
+      [Key(0)] public HashSet<string> completedIDs = new();
+      // achievementID → 当前进度计数
+      [Key(1)] public Dictionary<string, int> progress = new();
+  }
+
+  DataCenter 中补充：
+
+  public AchievementSaveData AchievementData { get; private set; }
+
+  // LoadAllData() 中加：
+  AchievementData = BinaryDataManager.Instance.Load<AchievementSaveData>(
+      "Achievement/", "AchievementData") ?? new AchievementSaveData();
+
+  // SaveAll() 中加：
+  BinaryDataManager.Instance.Save("Achievement/", "AchievementData", AchievementData);
+
+  ---
+  三、AchievementManager
+
+  public class AchievementManager
+  {
+      private static readonly AchievementManager _instance = new();
+      public static AchievementManager Instance => _instance;
+
+      private AchievementSaveData SaveData => DataCenter.Instance.AchievementData;
+
+      // 由 AchievementConditionTracker 调用
+      public void UpdateProgress(string achievementID, AchievementDataSO data, int addCount)
+      {
+          if (SaveData.completedIDs.Contains(achievementID)) return;
+
+          SaveData.progress.TryGetValue(achievementID, out int cur);
+          int next = Mathf.Min(cur + addCount, data.condition.requiredCount);
+          SaveData.progress[achievementID] = next;
+
+          if (next >= data.condition.requiredCount)
+              Unlock(achievementID, data);
+          else
+          {
+              // 进度变化通知（供成就面板刷新进度条）
+              EventCenter.Instance.SetEventTrigger(EventNames.AchievementProgressUpdated, achievementID);
+              DataCenter.Instance.SaveAll();
+          }
+      }
+
+      private void Unlock(string achievementID, AchievementDataSO data)
+      {
+          SaveData.completedIDs.Add(achievementID);
+          SaveData.progress.Remove(achievementID);    // 已完成不再追踪进度
+
+          GiveReward(data.reward);
+          DataCenter.Instance.SaveAll();
+
+          EventCenter.Instance.SetEventTrigger(EventNames.AchievementUnlocked, achievementID);
+      }
+
+      private void GiveReward(AchievementReward reward)
+      {
+          BagSystem.Instance.AddCurrency(reward.currency);
+          for (int i = 0; i < reward.items.Length; i++)
+          {
+              var item = reward.items[i];
+              if (item is ChipItemInfo chip)
+                  for (int j = 0; j < reward.itemCounts[i]; j++)
+                      BagSystem.Instance.AddChip(chip.assetID);
+              else
+                  BagSystem.Instance.AddItem(item.assetID, reward.itemCounts[i]);
+          }
+      }
+
+      public int GetProgress(string achievementID)
+          => SaveData.progress.GetValueOrDefault(achievementID, 0);
+
+      public bool IsCompleted(string achievementID)
+          => SaveData.completedIDs.Contains(achievementID);
+  }
+
+  ---
+  四、AchievementConditionTracker
+
+  与任务系统的条件追踪器并行订阅相同事件，处理各自的数据：
+
+  public class AchievementConditionTracker
+  {
+      private static readonly AchievementConditionTracker _instance = new();
+      public static AchievementConditionTracker Instance => _instance;
+
+      private List<AchievementDataSO> _allAchievements = new();
+
+      public void RegisterAll(IEnumerable<AchievementDataSO> achievements)
+          => _allAchievements.AddRange(achievements);
+
+      public void StartTracking()
+      {
+          EventCenter.Instance.AddEventListener<GameObject>(EventNames.UnitDeath, OnUnitDeath);
+          EventCenter.Instance.AddEventListener(EventNames.BagUpdated, OnBagUpdated);
+          EventCenter.Instance.AddEventListener<string>(EventNames.AreaEntered, OnAreaEntered);
+          EventCenter.Instance.AddEventListener<string>(EventNames.InteractionPerformed, OnInteractionPerformed);
+      }
+
+      private void OnUnitDeath(GameObject unit)
+      {
+          string assetID = unit.GetComponent<EnemyAnimatorDriver>()?.AssetInfo?.assetID;
+          UpdateCountConditions(QuestConditionType.Kill, assetID, 1);
+      }
+
+      private void OnBagUpdated()
+      {
+          // 收集类：用背包实际数量校准（防止重复计数）
+          foreach (var ach in _allAchievements)
+          {
+              if (ach.condition.type != QuestConditionType.Collect) continue;
+              if (AchievementManager.Instance.IsCompleted(ach.achievementID)) continue;
+
+              int bagCount = DataCenter.Instance.BagData.stackableItems
+                             .GetValueOrDefault(ach.condition.targetID, 0);
+              int capped = Mathf.Min(bagCount, ach.condition.requiredCount);
+
+              // 直接设置而非累加，避免出售再购买重复触发
+              int prev = AchievementManager.Instance.GetProgress(ach.achievementID);
+              if (capped > prev)
+                  AchievementManager.Instance.UpdateProgress(ach.achievementID, ach, capped - prev);
+          }
+      }
+
+      private void OnAreaEntered(string areaID)
+          => UpdateCountConditions(QuestConditionType.Reach, areaID, 1);
+
+      private void OnInteractionPerformed(string interactionID)
+          => UpdateCountConditions(QuestConditionType.Interact, interactionID, 1);
+
+      private void UpdateCountConditions(QuestConditionType type, string targetID, int addCount)
+      {
+          foreach (var ach in _allAchievements)
+          {
+              if (ach.condition.type != type) continue;
+              if (AchievementManager.Instance.IsCompleted(ach.achievementID)) continue;
+
+              // 空 targetID = 匹配任意
+              bool matches = string.IsNullOrEmpty(ach.condition.targetID)
+                          || ach.condition.targetID == targetID;
+              if (!matches) continue;
+
+              AchievementManager.Instance.UpdateProgress(ach.achievementID, ach, addCount);
+          }
+      }
+  }
+
+  ---
+  五、AchievementPopup（解锁弹窗通知）
+
+  解锁时右下角滑入，多个解锁时队列依次播放：
+
+  public class AchievementPopup : MonoBehaviour
+  {
+      private Image _icon;
+      private TMP_Text _nameText;
+      private TMP_Text _rewardText;
+      private Animator _animator;
+
+      // 弹窗队列（防止多个同时解锁时叠压）
+      private static Queue<string> _pendingQueue = new();
+      private static bool _isShowing;
+
+      // 通过 PanelManager 加载后注册事件
+      private void OnEnable()
+          => EventCenter.Instance.AddEventListener<string>(EventNames.AchievementUnlocked, EnqueueNotification);
+
+      private void OnDisable()
+          => EventCenter.Instance.RemoveEventListener<string>(EventNames.AchievementUnlocked, EnqueueNotification);
+
+      private void EnqueueNotification(string achievementID)
+      {
+          _pendingQueue.Enqueue(achievementID);
+          if (!_isShowing) ShowNext();
+      }
+
+      private void ShowNext()
+      {
+          if (_pendingQueue.Count == 0) { _isShowing = false; return; }
+          _isShowing = true;
+
+          string id = _pendingQueue.Dequeue();
+          AchievementDataSO data = AchievementConfigCache.Get(id);
+          if (data == null) { ShowNext(); return; }
+
+          _icon.sprite   = data.icon;
+          _nameText.text = data.displayName;
+          _rewardText.text = data.reward.currency > 0
+              ? $"+{data.reward.currency} 货币"
+              : data.reward.items.Length > 0 ? $"获得 {data.reward.items[0].displayName}" : "";
+
+          _animator.SetTrigger("SlideIn");
+          // 动画结束后（3秒）播放下一条
+          TimerEventManager.Instance.AddTimerEvent(3f, () =>
+          {
+              _animator.SetTrigger("SlideOut");
+              TimerEventManager.Instance.AddTimerEvent(0.5f, ShowNext);
+          });
+      }
+  }
+
+  ---
+  六、AchievementPanel（成就图鉴）
+
+  public class AchievementPanel : PanelBase
+  {
+      private Transform _grid;
+      private TMP_Dropdown _rarityFilter;
+      private TMP_Text _summaryText;      // "已解锁 12/56"
+
+      protected override void LoadInit()
+      {
+          EventCenter.Instance.AddEventListener<string>(EventNames.AchievementUnlocked, _ => Refresh());
+          EventCenter.Instance.AddEventListener<string>(EventNames.AchievementProgressUpdated, _ => Refresh());
+      }
+
+      protected override void ComponentInit()
+      {
+          _grid         = transform.Find("Grid");
+          _rarityFilter = transform.Find("RarityFilter").GetComponent<TMP_Dropdown>();
+          _summaryText  = transform.Find("Summary").GetComponent<TMP_Text>();
+
+          _rarityFilter.onValueChanged.AddListener(_ => Refresh());
+          Refresh();
+      }
+
+      private void Refresh()
+      {
+          ClearGrid();
+
+          var all = AchievementConfigCache.GetAll();
+          int completed = 0;
+
+          // 稀有度筛选
+          AchievementRarity? filter = _rarityFilter.value == 0
+              ? null : (AchievementRarity)(_rarityFilter.value - 1);
+
+          foreach (var ach in all)
+          {
+              if (filter.HasValue && ach.rarity != filter.Value) continue;
+
+              bool done = AchievementManager.Instance.IsCompleted(ach.achievementID);
+              if (done) completed++;
+
+              int cur = done ? ach.condition.requiredCount
+                             : AchievementManager.Instance.GetProgress(ach.achievementID);
+
+              var entry = CreateEntry();
+              entry.Setup(ach, cur, done);
+          }
+
+          _summaryText.text = $"已解锁 {completed}/{all.Count}";
+      }
+
+      private AchievementEntryUI CreateEntry() { /* 从对象池取 */ }
+      private void ClearGrid() { /* 回池 */ }
+  }
+
+  // 单个成就条目
+  public class AchievementEntryUI : MonoBehaviour
+  {
+      private Image _icon;
+      private Image _completedOverlay;    // 完成时显示金色描边
+      private TMP_Text _nameText;
+      private TMP_Text _descText;
+      private Slider _progressBar;
+      private TMP_Text _progressText;
+      private TMP_Text _rewardText;
+
+      public void Setup(AchievementDataSO data, int current, bool completed)
+      {
+          _icon.sprite             = data.icon;
+          _nameText.text           = data.displayName;
+          _descText.text           = data.description;
+          _completedOverlay.gameObject.SetActive(completed);
+
+          bool showProgress = !completed && data.condition.requiredCount > 1;
+          _progressBar.gameObject.SetActive(showProgress);
+          if (showProgress)
+          {
+              _progressBar.value = (float)current / data.condition.requiredCount;
+              _progressText.text = string.Format(data.condition.progressText,
+                                                 current, data.condition.requiredCount);
+          }
+
+          _rewardText.text = data.reward.currency > 0
+              ? $"奖励：{data.reward.currency} 货币"
+              : data.reward.items.Length > 0 ? $"奖励：{data.reward.items[0].displayName}" : "";
+      }
+  }
+
+  ---
+  七、与任务系统的关系对比
+
+  ┌──────────┬──────────────────────┬──────────────────────┐
+  │   维度   │       任务系统       │       成就系统       │
+  ├──────────┼──────────────────────┼──────────────────────┤
+  │ 触发方式 │ 需与NPC交互接取      │ 被动自动追踪         │
+  ├──────────┼──────────────────────┼──────────────────────┤
+  │ 条件结构 │ 多阶段，每阶段多条件 │ 单一条件             │
+  ├──────────┼──────────────────────┼──────────────────────┤
+  │ 进度重置 │ 每次接取重新计数     │ 跨存档累积，永不重置 │
+  ├──────────┼──────────────────────┼──────────────────────┤
+  │ 完成流程 │ 需返回NPC提交        │ 满足即自动解锁       │
+  ├──────────┼──────────────────────┼──────────────────────┤
+  │ 对话树   │ 有                   │ 无                   │
+  ├──────────┼──────────────────────┼──────────────────────┤
+  │ 空目标ID │ 不支持               │ 支持（匹配任意目标） │
+  └──────────┴──────────────────────┴──────────────────────┘
+
+  ---
+  EventNames 补充
+
+  public const string AchievementUnlocked         = nameof(AchievementUnlocked);         // string id
+  public const string AchievementProgressUpdated  = nameof(AchievementProgressUpdated);  // string id
+
+  ---
+  完整解锁流程
+
+  玩家击杀第50个敌人
+    └─→ EventCenter 广播 UnitDeath
+          ├─→ QuestConditionTracker（推进击杀类任务进度）
+          └─→ AchievementConditionTracker.OnUnitDeath()
+                └─→ 遍历所有未完成击杀类成就
+                      └─→ AchievementManager.UpdateProgress("ach_kill_50", data, 1)
+                            └─→ progress = 50 >= requiredCount(50)
+                                  └─→ Unlock() → GiveReward → SaveAll
+                                        └─→ 广播 AchievementUnlocked("ach_kill_50")
+                                              ├─→ AchievementPopup 弹出通知
+                                              └─→ AchievementPanel 刷新图鉴

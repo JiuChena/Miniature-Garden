@@ -1,0 +1,354 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4729dab1b065fe941aa6d4f9dd582add, type: 3}
+  m_Name: Burst
+  m_EditorClassIdentifier: 
+  animationSegments:
+  - authoringTrackName: Behavior Animation L0
+    clip: {fileID: -6553318640813667852, guid: a0b07bfa45501de46836234f6ef6f7e8, type: 3}
+    crossFadeDuration: 0
+    layer: 0
+    startTime: 0
+  totalDuration: 6.1666665
+  wrapMode: 1
+  speedMultiplier: 1
+  events:
+  - authoringTrackName: Behavior Audio [CH0221]
+    time: 0
+    type: 2
+    referenceBone: CH0221
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 0}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 8300000, guid: 483c3d5b89c45364dbcd9a8f5ee1d1de, type: 3}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Control Track
+    time: 0.6
+    type: 1
+    referenceBone: 
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 0}
+    targetObjectPath: CH0221/bone_root/prop_root/Regeneration_health_area
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Control Track
+    time: 4.6
+    type: 1
+    referenceBone: 
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 0}
+    targetObjectPath: CH0221/bone_root/prop_root/Regeneration_health_area
+    activeState: 0
+    autoRecycleTime: 1
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  hitboxes: []
+  priority: 4
+  comboInputWindowStart: 0.6
+  comboInputWindowEnd: 0.95
+  transitions: []
+  authoringTracks:
+  - trackName: Behavior Meta
+    trackKind: 0
+    sortIndex: 0
+    clips:
+    - displayName: Behavior Meta
+      startTime: 0
+      duration: 0.1
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 4
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: 
+        time: 0
+        type: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 0}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+  - trackName: Behavior Animation L0
+    trackKind: 1
+    sortIndex: 1
+    clips:
+    - displayName: CH0221_Exs
+      startTime: 0
+      duration: 6.1666665
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: Behavior Animation L0
+        clip: {fileID: -6553318640813667852, guid: a0b07bfa45501de46836234f6ef6f7e8,
+          type: 3}
+        crossFadeDuration: 0
+        layer: 0
+        startTime: 0
+      behaviorEvent:
+        authoringTrackName: 
+        time: 0
+        type: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 0}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+  - trackName: Behavior Audio [CH0221]
+    trackKind: 2
+    sortIndex: 2
+    clips:
+    - displayName: SFX_CH0221_Ex_Buff_Start
+      startTime: 0
+      duration: 6.1102495
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Behavior Audio [CH0221]
+        time: 0
+        type: 2
+        referenceBone: CH0221
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 0}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 8300000, guid: 483c3d5b89c45364dbcd9a8f5ee1d1de, type: 3}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+  - trackName: Control Track
+    trackKind: 3
+    sortIndex: 3
+    clips:
+    - displayName: Regeneration_health_area
+      startTime: 0.6
+      duration: 4
+      boundObjectPath: CH0221/bone_root/prop_root/Regeneration_health_area
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Control Track
+        time: 0.6
+        type: 0
+        referenceBone: CH0221/bone_root/prop_root
+        positionOffset: {x: 0, y: 0, z: 0.05}
+        rotationOffset: {x: 270, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 0}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 4
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25

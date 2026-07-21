@@ -1,0 +1,280 @@
+● 整体结构
+
+  IInteractable（接口）
+  └── InteractionBase : MonoBehaviour, IInteractable（抽象基类）
+      ├── ItemPickupInteraction     ← 道具拾取
+      ├── CoverInteraction          ← 掩体/低墙翻越
+      ├── DoorInteraction           ← 门开关
+      └── NPCInteraction            ← NPC 对话/商店入口
+
+  InteractionDetector（挂在玩家身上）
+  └── 维护当前可交互列表，处理 F 键输入
+
+  InteractionPanel（UI）
+  └── 显示交互提示，订阅 InteractionDetector 事件
+
+  ---
+  一、IInteractable 接口
+
+  public interface IInteractable
+  {
+      string InteractionID { get; }
+      string PromptText { get; }      // "F - 拾取 [物品名]"
+      int Priority { get; }           // 多个交互重叠时优先显示哪个
+
+      bool CanInteract(GameObject interactor);
+      void OnInteract(GameObject interactor);
+      void OnEnterRange(GameObject interactor);
+      void OnExitRange(GameObject interactor);
+  }
+
+  ---
+  二、InteractionBase（抽象基类）
+
+  触发检测放在可交互物体上，检测到玩家后向 InteractionDetector 注册自己：
+
+  [RequireComponent(typeof(Collider))]
+  public abstract class InteractionBase : MonoBehaviour, IInteractable
+  {
+      [SerializeField] private int priority = 0;
+      [SerializeField] private LayerMask playerLayer;     // 只响应玩家层，不用 Tag 字符串
+
+      public abstract string InteractionID { get; }
+      public abstract string PromptText { get; }
+      public int Priority => priority;
+
+      private void OnTriggerEnter(Collider other)
+      {
+          if (((1 << other.gameObject.layer) & playerLayer) == 0) return;
+          if (!CanInteract(other.gameObject)) return;
+
+          var detector = other.GetComponent<InteractionDetector>();
+          detector?.RegisterInteractable(this);
+          OnEnterRange(other.gameObject);
+      }
+
+      private void OnTriggerExit(Collider other)
+      {
+          if (((1 << other.gameObject.layer) & playerLayer) == 0) return;
+
+          var detector = other.GetComponent<InteractionDetector>();
+          detector?.UnregisterInteractable(this);
+          OnExitRange(other.gameObject);
+      }
+
+      public virtual bool CanInteract(GameObject interactor) => true;
+      public abstract void OnInteract(GameObject interactor);
+      public virtual void OnEnterRange(GameObject interactor) { }
+      public virtual void OnExitRange(GameObject interactor) { }
+  }
+
+  ---
+  三、InteractionDetector（挂在玩家身上）
+
+  public class InteractionDetector : MonoBehaviour
+  {
+      private readonly List<IInteractable> _inRangeList = new();
+      private IInteractable _current;     // 当前优先级最高的可交互对象
+
+      public void RegisterInteractable(IInteractable interactable)
+      {
+          if (_inRangeList.Contains(interactable)) return;
+          _inRangeList.Add(interactable);
+          _inRangeList.Sort((a, b) => b.Priority.CompareTo(a.Priority));
+          UpdateCurrent();
+      }
+
+      public void UnregisterInteractable(IInteractable interactable)
+      {
+          _inRangeList.Remove(interactable);
+          UpdateCurrent();
+      }
+
+      private void UpdateCurrent()
+      {
+          IInteractable next = _inRangeList.Count > 0 ? _inRangeList[0] : null;
+          if (next == _current) return;
+
+          _current = next;
+          // 通知 UI 刷新显示
+          EventCenter.Instance.SetEventTrigger(EventNames.InteractionChanged, _current);
+      }
+
+      private void Update()
+      {
+          if (_current == null) return;
+          if (!PlayerControlModule.Instance.InputData.InteractPressed) return;
+          if (!_current.CanInteract(gameObject)) return;
+
+          _current.OnInteract(gameObject);
+      }
+
+      // 角色切换时清空列表（新角色可能不在同一位置）
+      private void OnEnable()
+          => EventCenter.Instance.AddEventListener<int>(EventNames.CharacterSwitched, OnCharacterSwitched);
+      private void OnDisable()
+          => EventCenter.Instance.RemoveEventListener<int>(EventNames.CharacterSwitched, OnCharacterSwitched);
+
+      private void OnCharacterSwitched(int _)
+      {
+          _inRangeList.Clear();
+          _current = null;
+          EventCenter.Instance.SetEventTrigger(EventNames.InteractionChanged, (IInteractable)null);
+      }
+  }
+
+  ---
+  四、具体交互实现
+
+  道具拾取
+
+  public class ItemPickupInteraction : InteractionBase
+  {
+      [SerializeField] private ItemInfo itemData;
+      [SerializeField] private int amount = 1;
+
+      public override string InteractionID => itemData.assetID;
+      public override string PromptText => $"F - 拾取 {itemData.displayName} x{amount}";
+      public override int Priority => 10;     // 道具优先级高于门
+
+      public override void OnInteract(GameObject interactor)
+      {
+          DataCenter.Instance.BagData.AddItem(itemData.itemType, itemData.assetID, amount);
+          EventCenter.Instance.SetEventTrigger(EventNames.BagUpdated);
+          gameObject.SetActive(false);    // 回池或直接隐藏
+      }
+  }
+
+  低墙翻越
+
+  public class CoverInteraction : InteractionBase
+  {
+      public enum VaultDirection { Forward, Left, Right }
+
+      [SerializeField] private VaultDirection vaultDirection;
+      [SerializeField] private Transform vaultTarget;     // 翻越后落点
+
+      public override string InteractionID => "Cover_" + vaultDirection;
+      public override string PromptText => "F - 翻越";
+      public override int Priority => 5;
+
+      public override bool CanInteract(GameObject interactor)
+      {
+          // 只有玩家面朝低墙时才显示
+          Vector3 toWall = (transform.position - interactor.transform.position).normalized;
+          return Vector3.Dot(interactor.transform.forward, toWall) > 0.5f;
+      }
+
+      public override void OnInteract(GameObject interactor)
+      {
+          var driver = interactor.GetComponent<CharacterAnimatorDriver>();
+          // 通知 HSM 切换到翻越状态，传入落点
+          driver?.StartVault(vaultTarget.position, vaultDirection);
+      }
+  }
+
+  门
+
+  public class DoorInteraction : InteractionBase
+  {
+      [SerializeField] private Animator doorAnimator;
+      private bool _isOpen;
+
+      public override string InteractionID => "Door";
+      public override string PromptText => _isOpen ? "F - 关门" : "F - 开门";
+
+      public override void OnInteract(GameObject interactor)
+      {
+          _isOpen = !_isOpen;
+          doorAnimator.SetBool("IsOpen", _isOpen);
+      }
+  }
+
+  NPC 商店/对话入口
+
+  public class NPCInteraction : InteractionBase
+  {
+      [SerializeField] private string panelName;      // "StorePanel" or "DialoguePanel"
+      [SerializeField] private string npcID;
+
+      public override string InteractionID => npcID;
+      public override string PromptText => "F - 交谈";
+      public override int Priority => 8;
+
+      public override void OnInteract(GameObject interactor)
+      {
+          // 禁用游戏输入，切换到 UI 输入
+          PlayerControlModule.Instance.InputManager.EnableUIMap();
+
+          PanelManager.Instance.PanelDisplay<StorePanel>(panelName, uiRoot, (panel) =>
+          {
+              panel.Initialize(npcID);
+              panel.OnClose += () => PlayerControlModule.Instance.InputManager.EnableGameplayMap();
+          });
+      }
+  }
+
+  ---
+  五、InteractionPanel（UI）
+
+  public class InteractionPanel : PanelBase
+  {
+      private TMP_Text _promptText;
+      private GameObject _promptRoot;
+
+      protected override void LoadInit()
+      {
+          EventCenter.Instance.AddEventListener<IInteractable>(
+              EventNames.InteractionChanged, OnInteractionChanged);
+      }
+
+      protected override void ComponentInit()
+      {
+          _promptText = transform.Find("PromptText").GetComponent<TMP_Text>();
+          _promptRoot = transform.Find("PromptRoot").gameObject;
+          _promptRoot.SetActive(false);
+      }
+
+      private void OnInteractionChanged(IInteractable interactable)
+      {
+          if (interactable == null)
+          {
+              _promptRoot.SetActive(false);
+              return;
+          }
+          _promptText.text = interactable.PromptText;
+          _promptRoot.SetActive(true);
+      }
+
+      private void OnDestroy()
+      {
+          EventCenter.Instance.RemoveEventListener<IInteractable>(
+              EventNames.InteractionChanged, OnInteractionChanged);
+      }
+  }
+
+  ---
+  六、完整交互流程
+
+  玩家走进道具触发范围
+    └─→ ItemPickupInteraction.OnTriggerEnter()
+          └─→ InteractionDetector.RegisterInteractable(this)
+                └─→ 排序，更新 _current
+                      └─→ EventCenter 广播 InteractionChanged
+                            └─→ InteractionPanel 显示 "F - 拾取 [道具名]"
+
+  玩家按 F
+    └─→ InputData.InteractPressed = true
+          └─→ InteractionDetector.Update()
+                └─→ _current.OnInteract(gameObject)
+                      └─→ BagData.AddItem() → 广播 BagUpdated
+                            └─→ 物体隐藏，从列表移除
+                                  └─→ InteractionPanel 隐藏
+
+  ---
+  关键设计原则
+
+  - LayerMask 过滤，不用 CompareTag —— 层级在 Physics Settings 统一管理，不会因拼写出错
+  - InteractionDetector 是唯一输入处理点 —— 具体交互类不监听 Input，只被动等待 OnInteract 回调
+  - Priority 排序 —— 道具（10）> NPC（8）> 低墙（5）> 门（3），重叠区域自动显示最重要的那个
+  - 角色切换清空列表 —— 避免旧角色的交互状态污染新角色

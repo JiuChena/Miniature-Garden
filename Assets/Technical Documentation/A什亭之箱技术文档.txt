@@ -1,0 +1,653 @@
+﻿ TPS Demo 鏂版灦鏋勬妧鏈枃妗?
+
+ 鈻?鑳屾櫙锛?鍦ㄦ柊鏂囦欢澶逛腑浠庨浂鎼缓锛屼笉鍙楁棫浠ｇ爜绾︽潫銆傛湰鏂囨。鏄柊椤圭洰鐨勮璁¤鑼冿紝鍚屾椂鎬荤粨浜嗘棫椤圭洰涓彂鐜扮殑璁捐鏁欒锛岀‘淇濅笉閲嶈箞瑕嗚緳銆?
+ 鈻?鏍稿績鍐崇瓥锛?绾?C#锛堟棤 Lua锛夛紱MessagePack 鎸佷箙鍖栵紱PlayerControlModule 褰诲簳鎷嗗垎锛涙妧鑳界郴缁熼噰鐢?SO鏁版嵁 + 姣忚鑹?C# 琛屼负绫伙紱鍏ㄩ潰浣跨敤 Addressables锛汚ddressables
+ 鈻?浣滀负鍞竴璧勬簮鍔犺浇閫氶亾銆?
+
+ ---
+ 涓€銆佹棫椤圭洰璁捐鏁欒锛堟柊鏋舵瀯瑕侀伩鍏嶇殑闂锛?
+
+ 鏋舵瀯灞傞潰
+
+ 鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?                            鏃ч棶棰?                            鈹?                       鏂版灦鏋勫仛娉?                        鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?PlayerControlModule 800琛屼笂甯濆璞?                             鈹?褰诲簳鎷嗗垎涓?4 涓嫭绔嬫ā鍧楋紙瑙佺涓夌珷锛?                      鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?HSM 缁戝畾浜嗗叿浣撶被鍨?CharacterAnimatorDriver/EnemyAnimatorDriver 鈹?HSM 鍙緷璧?IStateOwner 鎺ュ彛锛屼笌鍏蜂綋绫诲畬鍏ㄨВ鑰?            鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?BuffSystem 鍜?BonusPanel 涓ゅ閲嶅彔鐨勫姞鎴愮郴缁?                   鈹?鍚堝苟涓哄崟涓€ BuffSystem锛孊onusPanel 浠呬綔 UI 琛ㄧ幇灞?         鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?ResourcesLoadManager + AddressableManager 涓ゅ璧勬簮鍔犺浇         鈹?鍙繚鐣?AddressableManager锛孯esources 鏂囦欢澶逛笉鏀捐繍琛屾椂璧勬簮 鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?BinaryFormatter锛堝畨鍏ㄦ紡娲烇紝宸插簾寮冿級                            鈹?缁熶竴浣跨敤 MessagePack锛堜簩杩涘埗锛岀被鍨嬪畨鍏級                  鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?LuaEnvManager + XLua锛堥泦鎴愪笉瀹屾暣锛岀淮鎶ゆ垚鏈珮锛?                鈹?绾?C#锛屾妧鑳借涓虹敤 CharacterSkillBehavior 鎶借薄绫?          鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?EventCenter 鐢ㄨ８瀛楃涓蹭綔浜嬩欢鍚?                                鈹?鐢?static class EventNames 甯搁噺鏇夸唬锛屾秷闄ゆ嫾鍐欓敊璇?        鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?DataCenter.Start() 娣锋湁娴嬭瘯浠ｇ爜                                鈹?娴嬭瘯鏁版嵁閫氳繃 Editor 宸ュ叿鑴氭湰娉ㄥ叆锛岀敓浜т唬鐮佷笉鍚?Test 閫昏緫  鈹?
+ 鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹粹攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+
+ Bug 妯″紡锛堟柊浠ｇ爜瑕佷富鍔ㄩ伩鍏嶏級
+
+ 鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?                   鏃?Bug                     鈹?        鏍瑰洜          鈹?                 鏂版灦鏋勯闃叉柟寮?                 鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?EnemyAnimatorDriver 閲嶅澹版槑 hsm 閬斀鍩虹被瀛楁 鈹?鍩虹被璁捐涓嶆竻鏅?       鈹?鍩虹被瀛楁鐢?protected锛屽瓙绫讳笉寰楅噸澹版槑鍚屽悕鎴愬憳     鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?UnitAssetInfoBase.name 閬斀 Object.name       鈹?鏈敞鎰?Unity 鍩虹被鎴愬憳 鈹?鎵€鏈夊瓧绗︿覆鏍囪瘑鏀瑰悕涓?assetID/displayName         鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?FilterDetection 閫昏緫鍐欏弽锛?A || !B 姘哥湡锛?    鈹?鏉′欢閫昏緫鐞嗚В閿欒      鈹?浜や簰妫€娴嬬粺涓€鐢?LayerMask 浣嶈繍绠楋紝涓嶇敤 Tag 瀛楃涓?鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?鏁屼汉 actualData.attack 浠庢湭璧嬪€?              鈹?閬楁紡瀛楁              鈹?ActualDataUpdate 鐢ㄧ粨鏋勫寲鏂规硶涓€娆℃€ц绠楀叏閮ㄥ睘鎬? 鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?OptionInteractionBase 鏈鏌ラ潰鏉挎槸鍚﹀瓨鍦?     鈹?缂哄皯绌烘鏌?           鈹?缁熶竴鐢??. 绌烘潯浠舵搷浣滅锛孭anel 璁块棶鍏ㄩ儴鍔犱繚鎶?    鈹?
+ 鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹尖攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+ 鈹?bufferQueue for 寰幆浣跨敤鍔ㄦ€?Count            鈹?寰幆鍐呬慨鏀逛簡闆嗗悎      鈹?寰幆鍓嶇紦瀛?Count锛坕nt count = queue.Count锛?     鈹?
+ 鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹粹攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹粹攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+
+ ---
+ 浜屻€佹柊椤圭洰鎺ㄨ崘瑙勮寖
+
+ 2.1 鍛藉悕瑙勮寖
+
+ 绫诲悕锛歅ascalCase锛屾棤鎷煎啓閿欒
+   鉁?UnitAssetInformation   鉁?CharacterAssetInforamtion
+   鉁?SerializableDictionary      鉁?SerializabDictionary
+   鉁?ComponentInit               鉁?CompomentInit
+   鉁?model                       鉁?modle
+
+ 鏋氫妇锛氬崟鐙斁 Enums/ 鏂囦欢澶癸紝涓嶅畾涔夊湪鍏蜂綋绫诲唴閮?
+   鉁?JumpDirection 瀹氫箟鍦?InteractiveLowWall.cs 鍐?
+   鉁?BonusType 瀹氫箟鍦?SkillPanel.cs 鍐?
+
+ 瀛楁鍛藉悕锛氫笉涓?Unity 鍩虹被鎴愬憳鍐茬獊
+   鉁?public string name;   // 閬斀 Object.name
+   鉁?public string displayName;
+   鉁?public string assetID;
+
+ 2.2 鍛藉悕绌洪棿缁勭粐
+
+ namespace TPS.Framework     // 鍩虹妗嗘灦灞傦紙EventCenter, Pool, AudioManager...锛?
+ namespace TPS.Core          // HSM銆丼tateBase銆丄nimatorDriverBase
+ namespace TPS.Player        // 鐜╁鐩稿叧
+ namespace TPS.Enemy         // 鏁屼汉鐩稿叧
+ namespace TPS.Skills        // 鎶€鑳界郴缁?
+ namespace TPS.Buff          // Buff 绯荤粺
+ namespace TPS.Data          // 鏁版嵁缁撴瀯涓庢寔涔呭寲
+ namespace TPS.UI            // UI 闈㈡澘
+ namespace TPS.Interaction   // 浜や簰妯″潡
+ namespace TPS.Config        // ScriptableObject 閰嶇疆
+
+ 2.3 鍗曚緥妯″紡缁熶竴
+
+ 鎵€鏈変笉闇€瑕佺敓鍛藉懆鏈熺殑绠＄悊鍣ㄧ敤绾?C# 鍗曚緥锛?
+ public class EventCenter
+ {
+     private static readonly EventCenter _instance = new();
+     public static EventCenter Instance => _instance;
+     private EventCenter() { }
+ }
+
+ 闇€瑕?MonoBehaviour锛圲pdate/鍗忕▼锛夌殑绠＄悊鍣ㄧ敤鎳掑垱寤烘ā寮忥紝骞惰 Awake 淇濇姢锛?
+ public class ObjectsPool : MonoBehaviour
+ {
+     private static ObjectsPool _instance;
+     public static ObjectsPool Instance
+     {
+         get
+         {
+             if (_instance != null) return _instance;
+             var go = new GameObject(nameof(ObjectsPool));
+             _instance = go.AddComponent<ObjectsPool>();
+             DontDestroyOnLoad(go);
+             return _instance;
+         }
+     }
+     private void Awake() { _instance = this; DontDestroyOnLoad(gameObject); }
+ }
+
+ 2.4 Assembly Definitions锛堟帹鑽愶級
+
+ 灏嗘鏋跺眰鍜屾父鎴忛€昏緫灞傚垎寮€缂栬瘧锛屽噺灏戞瘡娆′慨鏀归噸缂栬瘧鑼冨洿锛?
+ TPS.Framework.asmdef   鈫?鍩虹妗嗘灦锛堟敼鍔ㄥ皯锛?
+ TPS.Game.asmdef        鈫?娓告垙閫昏緫锛堟敼鍔ㄩ绻侊級
+ TPS.Editor.asmdef      鈫?Editor 宸ュ叿锛堝彧鍦?Editor 鐢級
+
+ ---
+ 涓夈€佸悇绯荤粺鏂版灦鏋勮璁?
+
+ 3.1 鍩虹妗嗘灦灞?
+
+ EventCenter 鈥?绫诲瀷瀹夊叏浜嬩欢鍚?
+
+ // 鍦?EventCenter 鍚屾枃浠跺畾涔?
+ public static class EventNames
+ {
+     public const string UpdateControlCH  = nameof(UpdateControlCH);
+     public const string LoadSceneProgress = nameof(LoadSceneProgress);
+     public const string PlayerDeath      = nameof(PlayerDeath);
+     public const string EnemyDeath       = nameof(EnemyDeath);
+ }
+ // 浣跨敤锛?
+ EventCenter.Instance.SetEventTrigger(EventNames.UpdateControlCH);
+
+ ObjectsPool 鈥?瀵硅薄姹狅紙淇濇寔鐜版湁璁捐锛屼慨姝?Bug锛?
+
+ 涓昏鏀瑰姩锛?
+ - Update 涓厛缂撳瓨 count = bufferQueue.Count锛屽啀 for 寰幆
+ - objectPool 瀛楁鏀逛负 private锛屼笉鏆撮湶鍐呴儴瀛楀吀
+
+ AddressableManager 鈥?鍞竴璧勬簮鍏ュ彛
+
+ - 淇濇寔鐜版湁寮曠敤璁℃暟璁捐锛堟纭級
+ - 鍒犻櫎 luaCache锛堜笉鍐嶉渶瑕?Lua锛?
+ - LoadAssetAsync 鐨?async 鍏抽敭瀛楀缓璁幓鎺夋垨琛ヤ笂鐪熸鐨?await锛岀幇鏈夎璁℃槸 async 鏂规硶鏃?await锛圕S1998 璀﹀憡锛夛紝鏀逛负鍥炶皟鎴栫函寮傛浜岄€変竴
+
+ BinaryDataManager 鈥?MessagePack 瀹炵幇
+
+ public class BinaryDataManager
+ {
+     private static readonly BinaryDataManager _instance = new();
+     public static BinaryDataManager Instance => _instance;
+
+     private static readonly string DataPath =
+         Application.persistentDataPath + "/Data/";
+
+     public void Save<T>(string path, string fileName, T data)
+     {
+         string fullPath = DataPath + path;
+         if (!Directory.Exists(fullPath)) Directory.CreateDirectory(fullPath);
+         byte[] bytes = MessagePackSerializer.Serialize(data);
+         File.WriteAllBytes(fullPath + fileName + ".bin", bytes);
+     }
+
+     public T Load<T>(string path, string fileName)
+     {
+         string fullPath = DataPath + path + fileName + ".bin";
+         if (!File.Exists(fullPath)) return default;
+         byte[] bytes = File.ReadAllBytes(fullPath);
+         return MessagePackSerializer.Deserialize<T>(bytes);
+     }
+ }
+
+ 鎸佷箙鍖栨暟鎹被妯℃澘锛?
+ [MessagePackObject]
+ public class BagData
+ {
+     [Key(0)] public SerializableDictionary<ItemType, SerializableDictionary<string, int>> items = new();
+ }
+
+ 鈻?SerializableDictionary<K,V> 闇€缂栧啓 MessagePack 鑷畾涔?Formatter锛堜竴娆℃€у伐浣滐級銆?
+
+ AudioManager 鈥?缁熶竴璧?Addressables
+
+ // 鍒犻櫎鏃х殑 SetAudio(string path, string clipName, ...) 閲嶈浇锛堜緷璧?Resources锛?
+ // 鍙繚鐣?SetAudio(AudioClip clip, ...) 鍜?SetAudio(string addressableKey, ...)
+ // addressableKey 鐗堟湰鍐呴儴璋冪敤 AddressableManager.Instance.LoadAssetAsync<AudioClip>
+
+ ---
+ 3.2 HSM 鈥?娉涘瀷鍖栵紝鎺ュ彛椹卞姩
+
+ 鏍稿績鏀瑰姩锛欻SM 鍙緷璧?IStateOwner 鎺ュ彛
+
+ // 鎺ュ彛瀹氫箟锛堟斁鍦?HSM 鍚屾枃浠舵垨 AnimatorDriverBase 鏂囦欢锛?
+ public interface IStateOwner
+ {
+     Animator Animator { get; }
+     PlayerInputData InputData { get; }
+     bool Death { get; set; }
+     float BulletSpeed { get; }
+ }
+
+ // HSM 褰诲簳瑙ｈ€?
+ public class HSM
+ {
+     public IStateOwner Owner { get; }
+     public HSM(IStateOwner owner) { Owner = owner; }
+
+     private readonly Dictionary<Type, StateBase> _states = new();
+     private StateBase _currentState;
+
+     public void AddState<T>(StateBase state) where T : StateBase
+         => _states.TryAdd(typeof(T), state);
+
+     public void SwitchState<T>() where T : StateBase
+     {
+         if (!_states.TryGetValue(typeof(T), out var next)) return;
+         if (_currentState == next) return;
+         _currentState?.OnExit();
+         _currentState = next;
+         _currentState.OnEnter();
+     }
+
+     public void Tick() => _currentState?.OnUpdate();
+     public StateBase CurrentState => _currentState;
+ }
+
+ // AnimatorDriverBase 瀹炵幇鎺ュ彛
+ public class AnimatorDriverBase : MonoBehaviour, IStateOwner
+ {
+     public bool stateDebug;
+     [HideInInspector] public PlayerInputData inputData = new();
+     [HideInInspector] public Animator animator;
+     [HideInInspector] public bool death;
+     public float bulletSpeed = 50f;
+     public HSM hsm { get; protected set; }  // 鍙湪鍩虹被澹版槑涓€娆?
+
+     // 鎺ュ彛瀹炵幇
+     Animator IStateOwner.Animator => animator;
+     PlayerInputData IStateOwner.InputData => inputData;
+     bool IStateOwner.Death { get => death; set => death = value; }
+     float IStateOwner.BulletSpeed => bulletSpeed;
+ }
+
+ // StateBase 閫氳繃 Owner 璁块棶椹卞姩鍣?
+ public abstract class StateBase
+ {
+     protected readonly HSM hsm;
+     protected IStateOwner Owner => hsm.Owner;
+     protected StateBase(HSM hsm) { this.hsm = hsm; }
+     public abstract void OnEnter();
+     public abstract void OnUpdate();
+     public abstract void OnExit();
+ }
+
+ // 鐜╁鐘舵€侀渶瑕佽闂帺瀹剁壒鏈夊姛鑳芥椂锛屽畨鍏ㄨ浆鍨?
+ public class PlayerIdleState : StateBase
+ {
+     private CharacterAnimatorDriver Driver => Owner as CharacterAnimatorDriver;
+     // ...
+ }
+
+ ---
+ 3.3 PlayerControlModule 鎷嗗垎
+
+ Player/Modules And Drivers/
+ 鈹溾攢鈹€ PlayerControlModule.cs       鈫?鍗忚皟鍣紝鎸佹湁鍚勫瓙妯″潡寮曠敤锛垀120琛岋級
+ 鈹溾攢鈹€ TeamManager.cs               鈫?瑙掕壊鍔犺浇銆佸垏鎹€佹浜″鐞?
+ 鈹溾攢鈹€ PlayerInputManager.cs        鈫?Input System 灏佽锛屾洿鏂?PlayerInputData
+ 鈹溾攢鈹€ PlayerCameraController.cs    鈫?鎽勫儚鏈哄垏鎹笌鏃嬭浆
+ 鈹斺攢鈹€ EnergySystem.cs              鈫?鑳介噺绉疮/娑堣€?
+
+ 鍚勬ā鍧楄亴璐ｏ細
+
+ // TeamManager锛氶槦浼嶇鐞?
+ public class TeamManager : MonoBehaviour
+ {
+     public UnitAssetInformation[] CHAssetInfos;    // 4涓鑹查厤缃?
+     public CharacterAnimatorDriver[] Drivers;           // 宸插疄渚嬪寲鐨勯┍鍔ㄥ櫒
+     public StatusData[] ActualPanels;          // 瀹炴椂闈㈡澘
+     private int _currentIndex;
+     private float _switchCooldown;
+
+     public int CurrentIndex => _currentIndex;
+     public CharacterAnimatorDriver CurrentDriver => Drivers[_currentIndex];
+     public StatusData CurrentPanel => ActualPanels[_currentIndex];
+
+     public async Task LoadTeamAsync() { ... }
+     public void SwitchTo(int index) { ... }
+     public void OnCurrentCharacterDeath() { ... }
+ }
+
+ // EnergySystem锛氳兘閲忕郴缁?
+ public class EnergySystem : MonoBehaviour
+ {
+     public const float MaxEnergy = 10f;
+     private float _curEnergy;
+     private float _efficiency;
+
+     public float CurrentEnergy => _curEnergy;
+     public bool IsFull => _curEnergy >= MaxEnergy;
+     public bool TryConsume(float amount) { ... }
+     public void SetEfficiency(float value) { _efficiency = value; }
+ }
+
+ // PlayerControlModule锛氬崗璋冨櫒锛屼繚鎸佸澶?API
+ public class PlayerControlModule : MonoBehaviour
+ {
+     public static PlayerControlModule Instance { get; private set; }
+     public TeamManager TeamManager { get; private set; }
+     public EnergySystem EnergySystem { get; private set; }
+     public PlayerInputManager InputManager { get; private set; }
+     public PlayerCameraController CameraController { get; private set; }
+
+     // 瀵瑰鍏煎灞炴€э紙鍏朵粬绯荤粺鐩存帴璁块棶锛?
+     public StatusData GetCHActualDataPanel => TeamManager.CurrentPanel;
+     public UnitAssetInformation GetCHAssetInfo => TeamManager.CHAssetInfos[TeamManager.CurrentIndex];
+ }
+
+ ---
+ 3.4 鎶€鑳界郴缁燂紙鏍稿績閲嶆瀯锛?
+
+ 鏋舵瀯锛歋O鏁版嵁 + 姣忚鑹?C# 琛屼负绫?
+
+ ScriptableObejctConfiguration/Skills/
+ 鈹溾攢鈹€ CharacterSkillBehavior.cs     鈫?鎶借薄鍩虹被 ScriptableObject
+ 鈹溾攢鈹€ Klaus/KlausSkillBehavior.cs   鈫?Klaus 涓撳睘瀹炵幇
+ 鈹斺攢鈹€ [鍏朵粬瑙掕壊]/...
+
+ SkillSystem/
+ 鈹溾攢鈹€ SkillContext.cs               鈫?鎶€鑳芥墽琛屼笂涓嬫枃
+ 鈹斺攢鈹€ SkillEffectProcessor.cs       鈫?閫氱敤鏁堟灉澶勭悊鍣紙闈欐€佺被锛?
+
+ // 鎶€鑳借涓哄熀绫伙紙ScriptableObject锛屽湪 Inspector 閰嶇疆鏁板€硷級
+ [CreateAssetMenu(menuName = "TPS/Skill Behavior/Character")]
+ public abstract class CharacterSkillBehavior : ScriptableObject
+ {
+     [Header("鏅€氭敾鍑?)]
+     public float attackMultiplier = 1f;
+     public GameObject attackEffect;
+
+     [Header("澶╄祴鎶€鑳?)]
+     public float talentCooltime = 10f;
+     public SkillAreaConfig talentArea;
+     public GameObject talentEffect;
+
+     [Header("鐖嗗彂鎶€鑳?)]
+     public float burstEnergyCost = 2f;
+     public SkillAreaConfig burstArea;
+     public GameObject burstEffect;
+
+     // 琛屼负閽╁瓙锛堟瘡涓鑹茶鍐欒嚜宸辩嫭鐗圭殑閫昏緫锛?
+     public virtual void OnAttack(SkillContext ctx) { }
+     public virtual void OnTalent(SkillContext ctx) { }
+     public virtual void OnBurst(SkillContext ctx) { }
+     // 瀛愬脊鍛戒腑鍥炶皟锛堝彲閫夎鍐欙紝瀹炵幇鐗规畩鍑讳腑鏁堟灉锛?
+     public virtual void OnBulletHitEnemy(SkillContext ctx, StatusData defender) { }
+ }
+
+ // 绀轰緥锛氭煇涓鑹茬殑涓撳睘瀹炵幇
+ [CreateAssetMenu(menuName = "TPS/Skill Behavior/Klaus")]
+ public class KlausSkillBehavior : CharacterSkillBehavior
+ {
+     [Header("Klaus 涓撳睘鍙傛暟")]
+     public float frostAuraDuration = 5f;
+     public BuffDataSO frostDebuff;
+
+     public override void OnBurst(SkillContext ctx)
+     {
+         // 1. 鑼冨洿浼ゅ
+         SkillEffectProcessor.ApplyDamageInArea(ctx, burstArea, ctx.OwnerData.attack * attackMultiplier);
+         // 2. 闄勫姞鍑忛€?debuff
+         foreach (var target in ctx.Targets)
+             BuffSystem.Instance.ApplyBuff(target, frostDebuff, ctx.Owner.gameObject);
+         // 3. 鐗规晥
+         ObjectsPool.Instance.GetObjectFromPool(burstEffect, null, obj =>
+         {
+             obj.transform.position = ctx.Owner.position;
+             ObjectsPool.Instance.ReturnObjectToPool(obj, frostAuraDuration);
+         });
+     }
+ }
+
+ // 鎶€鑳芥墽琛屼笂涓嬫枃锛堟浛浠ｆ棫鐨?BehaviorContext锛?
+ public class SkillContext
+ {
+     public Transform Owner { get; set; }
+     public StatusData OwnerData { get; set; }
+     public List<GameObject> Targets { get; set; } = new();
+     public CharacterSkillBehavior SkillData { get; set; }
+     public int SkillLevel { get; set; }
+ }
+
+ // 閫氱敤鏁堟灉澶勭悊鍣紙闈欐€佸伐鍏风被锛屾浛浠ｆ棫鐨?SkillEffectExecute锛?
+ public static class SkillEffectProcessor
+ {
+     public static void ApplyDamageInArea(SkillContext ctx, SkillAreaConfig area, float damage)
+     {
+         var targets = DetectTargetsInArea(ctx.Owner, area);
+         foreach (var t in targets)
+         {
+             float finalDamage = GeneralDataHandler.CalculateDamage(ctx.OwnerData, GetDataPanel(t), damage);
+             GetDamageReceiver(t)?.PushDamage(finalDamage);
+         }
+     }
+
+     public static void ApplyHeal(SkillContext ctx, float amount) { ... }
+     public static void ApplyBuff(SkillContext ctx, BuffDataSO buff) { ... }
+
+     private static List<GameObject> DetectTargetsInArea(Transform origin, SkillAreaConfig area) { ... }
+ }
+
+ UnitAssetInformation 鏂板瀛楁锛?
+ public CharacterSkillBehavior skillBehavior;  // 鏇夸唬鏃х殑 chSkillDataTable + Lua 寮曠敤
+
+ CharacterAnimatorDriver 鏀归€犲悗锛?
+ public class CharacterAnimatorDriver : AnimatorDriverBase
+ {
+     private CharacterSkillBehavior _skillBehavior;
+     private SkillContext _context;
+
+     protected override void Awake()
+     {
+         base.Awake();
+         _skillBehavior = assetInfo.skillBehavior;
+         _context = new SkillContext { Owner = transform, OwnerData = actualData, SkillData = _skillBehavior };
+         // 鍒濆鍖?HSM锛堜笉鍐嶅姞杞?Lua锛?
+         hsm = new HSM(this);
+         hsm.AddState<PlayerIdleState>(new PlayerIdleState(hsm));
+         // ...
+     }
+
+     public void AttackFire() => _skillBehavior.OnAttack(_context);
+     public void TalentSkill() => _skillBehavior.OnTalent(_context);
+     public void BurstSkill()  => _skillBehavior.OnBurst(_context);
+ }
+
+ ---
+ 3.5 Buff 绯荤粺缁熶竴
+
+ 缁撴瀯锛欱uffSystem 涓烘牳蹇冿紝BonusPanel 浠?UI 琛ㄧ幇
+
+ // BuffDataSO锛氭瘡涓?Buff 鐨勬暟鎹厤缃?
+ [CreateAssetMenu(menuName = "TPS/Buff Data")]
+ public class BuffDataSO : ScriptableObject
+ {
+     public string buffID;
+     public string displayName;
+     public BonusType affectedStat;   // 褰卞搷鍝釜灞炴€?
+     public float value;               // 鍔犳垚鏁板€?
+     public float duration;            // 鎸佺画鏃堕棿锛?=姘镐箙锛?
+     public int maxStacks;             // 鏈€澶у彔鍔犲眰鏁?
+     public bool showInUI;             // 鏄惁鍦ㄦ妧鑳介潰鏉挎樉绀哄浘鏍?
+     public Sprite icon;
+ }
+
+ // BuffSystem锛氱粺涓€绠＄悊鎵€鏈?Buff锛堢帺瀹跺拰鏁屼汉閫氱敤锛?
+ public class BuffSystem
+ {
+     // 褰撳閮ㄩ渶瑕佺煡閬?Buff 鍙樺寲鏃堕€氳繃 EventCenter 骞挎挱
+     // EventNames.BuffApplied / EventNames.BuffRemoved
+     public void ApplyBuff(GameObject target, BuffDataSO buff, GameObject caster) { ... }
+     public void RemoveBuff(GameObject target, BuffDataSO buff) { ... }
+     public float GetStatModifier(GameObject target, BonusType stat) { ... }
+ }
+
+ // BonusPanel锛氳闃?BuffSystem 浜嬩欢锛岃礋璐?UI 灞曠ず鍜屽悜 StatusData 鍚屾鍔犳垚
+ public class BonusPanel
+ {
+     public void Initialize(GameObject owner)
+     {
+         EventCenter.Instance.AddEventListener<BuffData>(EventNames.BuffApplied, OnBuffApplied);
+         EventCenter.Instance.AddEventListener<BuffData>(EventNames.BuffRemoved, OnBuffRemoved);
+     }
+     // 涓嶅啀鑷繁绠＄悊 Queue锛屾敼涓轰粠 BuffSystem 鏌ヨ
+     public float GetAttackBonus() => BuffSystem.Instance.GetStatModifier(_owner, BonusType.Attack);
+ }
+
+ ---
+ 3.6 浼ゅ璁＄畻绯荤粺
+
+ // 缁熶竴浼ゅ鎺ュ彛锛堟浛浠ｇ洿鎺ヨ闂叿浣撶被锛?
+ public interface IDamageable
+ {
+     StatusData DataPanel { get; }
+     void PushDamage(float damage);
+     bool IsDead { get; }
+ }
+
+ // 鐜╁鍜屾晫浜洪兘瀹炵幇杩欎釜鎺ュ彛
+ public class PlayerDamageReceiver : MonoBehaviour, IDamageable { ... }
+ public class EnemyDamageReceiver : MonoBehaviour, IDamageable { ... }
+
+ // BulletDriverModule 涓嶅啀鐩存帴寮曠敤 PlayerControlModule
+ // 鏀逛负閫氳繃鎺ュ彛璁块棶
+ private void BulletRayCast()
+ {
+     // ...
+     IDamageable target = hit.collider.GetComponent<IDamageable>();
+     if (target != null)
+     {
+         float damage = GeneralDataHandler.CalculateDamage(_attackerData, target.DataPanel);
+         target.PushDamage(damage);
+     }
+ }
+
+ ---
+ 3.7 鏁版嵁涓績
+
+ // DataCenter锛氬共鍑€鐨勫垵濮嬪寲锛屾棤娴嬭瘯浠ｇ爜
+ public class DataCenter : MonoBehaviour
+ {
+     private static DataCenter _instance;
+     public static DataCenter Instance => _instance;
+
+     public BagData BagData { get; private set; } = new();
+     public StoreData StoreData { get; private set; } = new();
+     public CHChipsData ChipsData { get; private set; } = new();
+     public CHSkillLevelData SkillLevelData { get; private set; } = new();
+
+     private void Awake()
+     {
+         _instance = this;
+         LoadAllData();
+     }
+
+     private void LoadAllData()
+     {
+         BagData = BinaryDataManager.Instance.Load<BagData>("Bag/", "BagData") ?? new BagData();
+         StoreData = BinaryDataManager.Instance.Load<StoreData>("Store/", "StoreData") ?? new StoreData();
+         ChipsData = BinaryDataManager.Instance.Load<CHChipsData>("Chips/", "ChipsData") ?? new CHChipsData();
+         SkillLevelData = BinaryDataManager.Instance.Load<CHSkillLevelData>("Skills/", "SkillLevels") ?? new CHSkillLevelData();
+     }
+
+     public void SaveAll()
+     {
+         BinaryDataManager.Instance.Save("Bag/", "BagData", BagData);
+         BinaryDataManager.Instance.Save("Store/", "StoreData", StoreData);
+         // ...
+     }
+ }
+
+ // Editor 宸ュ叿锛堝彧鍦ㄧ紪杈戝櫒鐢紝涓嶈繘鐢熶骇浠ｇ爜锛?
+ #if UNITY_EDITOR
+ public class DataCenterEditorTools : Editor
+ {
+     [MenuItem("TPS/Dev Tools/Add Test Data")]
+     static void AddTestData() { /* 娴嬭瘯鏁版嵁娉ㄥ叆 */ }
+ }
+ #endif
+
+ ---
+ 3.8 浜や簰绯荤粺
+
+ 淇濈暀鐜版湁 InteractionBasicModule 鎶借薄璁捐锛屼慨姝ｄ袱澶勯棶棰橈細
+
+ // 1. FilterDetection 鏀圭敤 LayerMask锛屼笉鐢?Tag 瀛楃涓诧紙鏇村彲闈狅級
+ protected override bool FilterDetection(GameObject target)
+ {
+     return ((1 << target.layer) & targetLayerMask) != 0;
+ }
+
+ // 2. OptionInteractionBase TriggerExit 鍔犵┖妫€鏌?
+ protected override void TriggerExitPerformance(GameObject target)
+ {
+     PanelManager.Instance.GetPanel<InteractionPanel>("Interaction Panel")?.RemoveEvent(ID);
+ }
+
+ ---
+ 3.9 ScriptableObject 閰嶇疆灞?
+
+ 淇鍛藉悕锛岀粺涓€缁ф壙缁撴瀯锛?
+
+ ScriptableObejctConfiguration/锛堟枃浠跺す鍚嶄篃鍙『鎵嬫敼鎺夋嫾鍐欓敊璇級
+ 鈹溾攢鈹€ Base/
+ 鈹?  鈹溾攢鈹€ CESODataBase.cs            鈫?鍩虹鏁板€硷紙鐢熷懡/鏀诲嚮/闃插尽/閫熷害/鏆村嚮锛?
+ 鈹?  鈹斺攢鈹€ CESODataGrowth.cs          鈫?鎴愰暱搴︼紙绛夌骇鎴愰暱鏇茬嚎锛?
+ 鈹溾攢鈹€ Character/
+ 鈹?  鈹溾攢鈹€ UnitAssetInfoBase.cs       鈫?displayName/assetID/model锛堟敼鎺?name/modle锛?
+ 鈹?  鈹溾攢鈹€ UnitAssetInformation.cs  鈫?鐜╁瑙掕壊瀹屾暣閰嶇疆锛堜慨姝ｆ嫾鍐欙級
+ 鈹?  鈹斺攢鈹€ CharacterSkillBehavior/    鈫?绉诲叆姝ゅ
+ 鈹溾攢鈹€ Enemy/
+ 鈹?  鈹斺攢鈹€ EnemyAssetInformation.cs
+ 鈹斺攢鈹€ Items/
+     鈹斺攢鈹€ ItemInfo classes
+
+ UnitAssetInfoBase 瀛楁淇锛?
+ public class UnitAssetInfoBase : ScriptableObject
+ {
+     public string assetID;       // 鉁擄紙涓嶇敤 name锛岄伩鍏嶉伄钄?Object.name锛?
+     public string displayName;   // 鉁擄紙鍘熸潵鐨?name 鏀瑰悕锛?
+     public GameObject model;     // 鉁擄紙鍘熸潵鐨?modle 淇锛?
+     // ...
+ }
+
+ ---
+ 鍥涖€佹瀯寤洪『搴忓缓璁?
+
+ 闃舵涓€锛氬熀纭€妗嗘灦
+
+ 鈻?鍏堟妸鍦板熀鎵撳ソ锛屼笂灞傜郴缁熶緷璧栧畠
+
+ 1. BinaryDataManager锛圡essagePack 瀹炵幇锛?
+ 2. AddressableManager锛堜繚鎸佺幇鏈夎璁★紝娓呯悊 Lua 鐩稿叧锛?
+ 3. EventCenter + EventNames
+ 4. ObjectsPool锛堜慨姝?Count 缂撳瓨 Bug锛?
+ 5. PublicMono銆乀imerEventManager
+ 6. AudioManager锛堝叏璧?Addressables锛?
+ 7. PanelManager + PanelBase锛圤nUpdate 鏀?virtual锛?
+ 8. LoadSceneManager
+
+ 闃舵浜岋細鏍稿績娓告垙鏋舵瀯
+
+ 鈻?HSM + 椹卞姩鍣?+ 鏁版嵁灞?
+
+ 1. IStateOwner 鎺ュ彛 + HSM锛堟硾鍨嬪寲锛?
+ 2. AnimatorDriverBase锛堝疄鐜版帴鍙ｏ紝澹版槑鍞竴 hsm 瀛楁锛?
+ 3. StatusData锛堣鑹插疄鏃堕潰鏉挎暟鎹粨鏋勶級
+ 4. GeneralDataHandler锛堜激瀹宠绠椼€侀潰鏉胯绠楅潤鎬佸伐鍏凤級
+ 5. IDamageable 鎺ュ彛 + DamageReceiver 瀹炵幇
+ 6. DataCenter + 鎵€鏈夋寔涔呭寲鏁版嵁绫?
+
+ 闃舵涓夛細鐜╁绯荤粺
+
+ 鈻?鎷嗗垎鍚庣殑 4 涓ā鍧?+ 鐘舵€佹満
+
+ 1. PlayerInputManager
+ 2. EnergySystem
+ 3. TeamManager
+ 4. PlayerCameraController
+ 5. PlayerControlModule锛堝崗璋冨櫒锛?
+ 6. CharacterAnimatorDriver
+ 7. 鐜╁鎵€鏈夌姸鎬侊紙PlayerIdleState 绛夛級
+
+ 闃舵鍥涳細鎶€鑳戒笌 Buff 绯荤粺
+
+ 1. BuffDataSO + BuffSystem
+ 2. BonusPanel锛堣闃?BuffSystem锛?
+ 3. CharacterSkillBehavior锛堟娊璞″熀绫伙級
+ 4. SkillContext + SkillEffectProcessor
+ 5. SectorIndicator / ThrowIndicator锛堟寚绀哄櫒锛屼緷璧栨妧鑳界郴缁燂級
+ 6. 鍚勮鑹?XxxSkillBehavior.cs
+
+ 闃舵浜旓細鏁屼汉绯荤粺
+
+ 1. EnemyAnimatorDriver锛堜笉閲嶅澹版槑 hsm锛屽姞 attack 璁＄畻锛?
+ 2. 鏁屼汉鎵€鏈夌姸鎬侊紙EnemyIdleState 绛夛級
+ 3. EnemyGroups 鐢熸垚绯荤粺
+     鈹?---                                                                                                                                                                鈹?
+     鈹?鍏€侀渶瑕佺壒鍒敞鎰忕殑椋庨櫓鐐?                                                                                                                                          鈹?
+     鈹?                                                                                                                                                                   鈹?
+     鈹?1. HSM 閲嶆瀯鏈熼棿锛氱帺瀹?鏁屼汉鐘舵€佹満鍚屾椂鏀瑰姩锛岄渶寤虹珛涓存椂鎺ュ彛鍏煎灞傚啀閫愭杩佺Щ锛岄伩鍏嶆暣浣撶牬鍧忋€? 

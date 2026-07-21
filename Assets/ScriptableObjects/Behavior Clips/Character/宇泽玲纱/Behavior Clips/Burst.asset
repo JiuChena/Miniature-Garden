@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4729dab1b065fe941aa6d4f9dd582add, type: 3}
+  m_Name: Burst
+  m_EditorClassIdentifier: 
+  animationSegments:
+  - clip: {fileID: -3538833696022911555, guid: fb3ee1246be6b86428ecfc36a1e6faf2, type: 3}
+    crossFadeDuration: 0
+    layer: 0
+    startTime: 0
+  totalDuration: 4.9333334
+  wrapMode: 1
+  speedMultiplier: 1
+  events:
+  - time: 0.43333334
+    type: 1
+    referenceBone: CH0167
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 0}
+    autoRecycleTime: 1
+    audioRef: {fileID: 8300000, guid: 883c355acb90fc5468996f29857407f1, type: 3}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - time: 1.0333333
+    type: 1
+    referenceBone: CH0167
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 0}
+    autoRecycleTime: 1
+    audioRef: {fileID: 8300000, guid: 883c355acb90fc5468996f29857407f1, type: 3}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - time: 1.5666667
+    type: 1
+    referenceBone: CH0167
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 0}
+    autoRecycleTime: 1
+    audioRef: {fileID: 8300000, guid: d7c3946e043bf75428a93c015e224be4, type: 3}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - time: 2.2432199
+    type: 1
+    referenceBone: CH0167
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 0}
+    autoRecycleTime: 1
+    audioRef: {fileID: 8300000, guid: 883c355acb90fc5468996f29857407f1, type: 3}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - time: 3.0283446
+    type: 1
+    referenceBone: CH0167
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 0}
+    autoRecycleTime: 1
+    audioRef: {fileID: 8300000, guid: 673a79b16dcf0124db2e85901ef872e0, type: 3}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  hitboxes: []
+  priority: 4
+  comboInputWindowStart: 0.6
+  comboInputWindowEnd: 0.95
+  transitions: []

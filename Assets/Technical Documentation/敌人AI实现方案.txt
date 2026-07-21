@@ -1,0 +1,372 @@
+
+● 导航方案建议
+
+  推荐：NavMesh + NavMeshAgent（直接用，不必过度封装）
+
+  20 个以内的敌人完全不需要自制寻路，NavMeshAgent 足够。唯一需要注意的是旋转控制：
+
+  // 禁用 Agent 自动旋转，手动控制朝向（瞄准玩家更流畅）
+  agent.updateRotation = false;
+
+  不建议做 NavMesh + CharacterController 混合方案 —— 那套主要解决需要精确物理（弹跳、击退）的场景，TPS 敌人用不上这复杂度。
+
+  ---
+  AI 状态机设计
+
+  EnemyIdleState ──[发现玩家]──→ EnemyChaseState
+        ↑                              │
+        │              [进入攻击范围]──→ EnemyAttackState
+  [搜索超时]                            │
+        │             [脱离攻击范围]───→ EnemyChaseState
+  EnemySearchState ←──[丢失玩家]──────────┘
+
+  EnemyPatrolState ←──[无玩家时巡逻]
+        ↓
+  [所有状态] ──[HP=0]──→ EnemyDeathState
+
+  ---
+  一、EnemyAnimatorDriver
+
+  继承 AnimatorDriverBase，实现 IStateOwner 接口：
+
+  public class EnemyAnimatorDriver : AnimatorDriverBase
+  {
+      [HideInInspector] public NavMeshAgent agent;
+      [HideInInspector] public EnemyPerception perception;
+      [HideInInspector] public StatusData actualData;
+      [HideInInspector] public Transform playerTarget;
+
+      protected override void Awake()
+      {
+          base.Awake();
+          agent = GetComponent<NavMeshAgent>();
+          perception = GetComponent<EnemyPerception>();
+          actualData = GetComponent<StatusData>();
+          agent.updateRotation = false;
+
+          hsm = new HSM(this);
+          hsm.AddState<EnemyIdleState>(new EnemyIdleState(hsm));
+          hsm.AddState<EnemyPatrolState>(new EnemyPatrolState(hsm));
+          hsm.AddState<EnemyChaseState>(new EnemyChaseState(hsm));
+          hsm.AddState<EnemyAttackState>(new EnemyAttackState(hsm));
+          hsm.AddState<EnemySearchState>(new EnemySearchState(hsm));
+          hsm.AddState<EnemyDeathState>(new EnemyDeathState(hsm));
+          hsm.SwitchState<EnemyIdleState>();
+      }
+
+      private void Update()
+      {
+          if (actualData.IsDead) return;
+          hsm.Tick();
+          // 平滑旋转朝向移动方向或目标
+          RotateTowardTarget();
+      }
+
+      private void RotateTowardTarget()
+      {
+          Vector3 dir = perception.CanSeePlayer
+              ? (playerTarget.position - transform.position)
+              : agent.velocity;
+
+          if (dir.sqrMagnitude < 0.01f) return;
+          dir.y = 0;
+          transform.rotation = Quaternion.Slerp(
+              transform.rotation,
+              Quaternion.LookRotation(dir),
+              Time.deltaTime * 8f);
+      }
+  }
+
+  ---
+  二、感知系统 EnemyPerception
+
+  视野锥 + 射线检测，独立组件方便调参：
+
+  public class EnemyPerception : MonoBehaviour
+  {
+      [SerializeField] private float viewRange = 15f;
+      [SerializeField] private float viewAngle = 120f;
+      [SerializeField] private float hearRange = 8f;
+      [SerializeField] private LayerMask playerLayer;
+      [SerializeField] private LayerMask obstacleLayer;
+
+      public bool CanSeePlayer { get; private set; }
+      public Vector3 LastKnownPosition { get; private set; }
+
+      private Transform _player;
+
+      private void Start()
+          => _player = PlayerControlModule.Instance.CurrentDriver.transform;
+
+      // 每 0.1s 检测一次，不必每帧
+      private void OnEnable()
+          => InvokeRepeating(nameof(UpdatePerception), 0f, 0.1f);
+      private void OnDisable()
+          => CancelInvoke(nameof(UpdatePerception));
+
+      private void UpdatePerception()
+      {
+          // 角色切换时更新目标
+          _player = PlayerControlModule.Instance.CurrentDriver.transform;
+
+          CanSeePlayer = CheckSight() || CheckHearing();
+          if (CanSeePlayer) LastKnownPosition = _player.position;
+      }
+
+      private bool CheckSight()
+      {
+          Vector3 toPlayer = _player.position - transform.position;
+          if (toPlayer.magnitude > viewRange) return false;
+          if (Vector3.Angle(transform.forward, toPlayer) > viewAngle * 0.5f) return false;
+          // 障碍物遮挡检测
+          return !Physics.Raycast(transform.position + Vector3.up,
+              toPlayer.normalized, toPlayer.magnitude, obstacleLayer);
+      }
+
+      private bool CheckHearing()
+          => Vector3.Distance(transform.position, _player.position) < hearRange;
+
+      // 受到攻击时强制感知（被偷袭也会发现）
+      public void ForceDetect()
+      {
+          CanSeePlayer = true;
+          LastKnownPosition = _player.position;
+      }
+  }
+
+  ---
+  三、各状态实现
+
+  所有状态都通过 Owner as EnemyAnimatorDriver 访问驱动器：
+
+  // 辅助基类，省去每次转型
+  public abstract class EnemyStateBase : StateBase
+  {
+      protected EnemyAnimatorDriver Enemy => hsm.Owner as EnemyAnimatorDriver;
+      protected EnemyStateBase(HSM hsm) : base(hsm) { }
+  }
+
+  // ── 待机 ──────────────────────────────────────────
+  public class EnemyIdleState : EnemyStateBase
+  {
+      private float _idleTimer;
+      public EnemyIdleState(HSM hsm) : base(hsm) { }
+
+      public override void OnEnter()
+      {
+          Enemy.agent.isStopped = true;
+          Enemy.animator.CrossFade("Idle", 0.2f);
+          _idleTimer = Random.Range(2f, 4f);
+      }
+
+      public override void OnUpdate()
+      {
+          if (Enemy.perception.CanSeePlayer)
+          {
+              hsm.SwitchState<EnemyChaseState>();
+              return;
+          }
+          _idleTimer -= Time.deltaTime;
+          if (_idleTimer <= 0) hsm.SwitchState<EnemyPatrolState>();
+      }
+
+      public override void OnExit() { }
+  }
+
+  // ── 追击 ──────────────────────────────────────────
+  public class EnemyChaseState : EnemyStateBase
+  {
+      private float _updatePathTimer;
+      public EnemyChaseState(HSM hsm) : base(hsm) { }
+
+      public override void OnEnter()
+      {
+          Enemy.agent.isStopped = false;
+          Enemy.animator.CrossFade("Run", 0.2f);
+          AlertNearbyEnemies();   // 通知附近敌人
+      }
+
+      public override void OnUpdate()
+      {
+          if (!Enemy.perception.CanSeePlayer)
+          {
+              hsm.SwitchState<EnemySearchState>();
+              return;
+          }
+
+          float dist = Vector3.Distance(Enemy.transform.position,
+                                        Enemy.playerTarget.position);
+          if (dist <= Enemy.attackRange)
+          {
+              hsm.SwitchState<EnemyAttackState>();
+              return;
+          }
+
+          // 限频更新寻路（不必每帧）
+          _updatePathTimer -= Time.deltaTime;
+          if (_updatePathTimer <= 0)
+          {
+              Enemy.agent.SetDestination(Enemy.playerTarget.position);
+              _updatePathTimer = 0.2f;
+          }
+      }
+
+      public override void OnExit() => Enemy.agent.isStopped = true;
+
+      private void AlertNearbyEnemies()
+      {
+          // 通知 8 米内的同伴
+          Collider[] cols = Physics.OverlapSphere(Enemy.transform.position, 8f);
+          foreach (var col in cols)
+          {
+              var ally = col.GetComponent<EnemyAnimatorDriver>();
+              if (ally != null && ally != Enemy)
+                  ally.perception.ForceDetect();
+          }
+      }
+  }
+
+  // ── 攻击 ──────────────────────────────────────────
+  public class EnemyAttackState : EnemyStateBase
+  {
+      private float _attackCooldown;
+      public EnemyAttackState(HSM hsm) : base(hsm) { }
+
+      public override void OnEnter()
+      {
+          Enemy.agent.isStopped = true;
+          Enemy.animator.CrossFade("Aim", 0.2f);
+      }
+
+      public override void OnUpdate()
+      {
+          float dist = Vector3.Distance(Enemy.transform.position,
+                                        Enemy.playerTarget.position);
+          if (dist > Enemy.attackRange * 1.2f)   // 留 20% 缓冲，防止频繁切换
+          {
+              hsm.SwitchState<EnemyChaseState>();
+              return;
+          }
+
+          _attackCooldown -= Time.deltaTime;
+          if (_attackCooldown <= 0)
+          {
+              Enemy.FireBullet();
+              _attackCooldown = Enemy.attackInterval;
+          }
+      }
+
+      public override void OnExit() { }
+  }
+
+  // ── 搜索（丢失玩家后） ──────────────────────────────
+  public class EnemySearchState : EnemyStateBase
+  {
+      private float _searchTimer = 5f;
+      public EnemySearchState(HSM hsm) : base(hsm) { }
+
+      public override void OnEnter()
+      {
+          Enemy.agent.isStopped = false;
+          Enemy.agent.SetDestination(Enemy.perception.LastKnownPosition);
+          Enemy.animator.CrossFade("Walk", 0.2f);
+          _searchTimer = 5f;
+      }
+
+      public override void OnUpdate()
+      {
+          if (Enemy.perception.CanSeePlayer)
+          {
+              hsm.SwitchState<EnemyChaseState>();
+              return;
+          }
+          _searchTimer -= Time.deltaTime;
+          if (_searchTimer <= 0) hsm.SwitchState<EnemyPatrolState>();
+      }
+
+      public override void OnExit() { }
+  }
+
+  // ── 死亡 ──────────────────────────────────────────
+  public class EnemyDeathState : EnemyStateBase
+  {
+      public EnemyDeathState(HSM hsm) : base(hsm) { }
+
+      public override void OnEnter()
+      {
+          Enemy.agent.isStopped = true;
+          Enemy.agent.enabled = false;
+          Enemy.GetComponent<Collider>().enabled = false;
+          Enemy.animator.CrossFade("Death", 0.1f);
+          // 延迟回池
+          TimerEventManager.Instance.AddTimerEvent(3f, ReturnToPool);
+      }
+
+      private void ReturnToPool()
+          => ObjectsPool.Instance.ReturnObjectToPool(Enemy.gameObject);
+
+      public override void OnUpdate() { }
+      public override void OnExit() { }
+  }
+
+  ---
+  四、EnemyGroups（刷新系统）
+
+  public class EnemyGroups : MonoBehaviour
+  {
+      [SerializeField] private EnemyAssetInformation[] enemyConfigs;
+      [SerializeField] private Transform[] spawnPoints;
+      [SerializeField] private int maxAlive = 10;
+
+      private int _aliveCount;
+
+      // 由关卡触发器（进入区域/剧情节点）调用
+      public void StartSpawning()
+          => StartCoroutine(SpawnRoutine());
+
+      private IEnumerator SpawnRoutine()
+      {
+          foreach (var config in enemyConfigs)
+          {
+              while (_aliveCount >= maxAlive)
+                  yield return new WaitForSeconds(1f);
+
+              SpawnEnemy(config);
+              yield return new WaitForSeconds(0.5f);
+          }
+      }
+
+      private void SpawnEnemy(EnemyAssetInformation config)
+      {
+          Transform point = spawnPoints[Random.Range(0, spawnPoints.Length)];
+          ObjectsPool.Instance.GetObjectFromPool(config.model, point, (obj) =>
+          {
+              var driver = obj.GetComponent<EnemyAnimatorDriver>();
+              driver.Initialize(config);
+              _aliveCount++;
+              EventCenter.Instance.AddEventListener<GameObject>(EventNames.UnitDeath, OnEnemyDeath);
+          });
+      }
+
+      private void OnEnemyDeath(GameObject unit)
+      {
+          if (unit.GetComponent<EnemyAnimatorDriver>() != null)
+              _aliveCount--;
+      }
+  }
+
+  ---
+  架构总结
+
+  EnemyGroups（刷新）
+    └─→ ObjectsPool 取出敌人实例
+          └─→ EnemyAnimatorDriver（HSM 驱动）
+                ├─→ EnemyPerception（感知，0.1s 轮询）
+                ├─→ NavMeshAgent（寻路移动）
+                ├─→ StatusData（血量/属性）
+                └─→ HSM 状态机
+                      Idle → Patrol → Chase → Attack → Search
+                                                ↓
+                                            Death → 回对象池
+
+  感知系统用 InvokeRepeating 而非每帧检测，20 个敌人的感知开销可忽略不计。NavMesh 在这个规模下完全足够，不需要引入额外的寻路库。

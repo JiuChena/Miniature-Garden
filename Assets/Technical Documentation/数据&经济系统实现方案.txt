@@ -1,0 +1,448 @@
+● 整体结构
+
+  配置层（ScriptableObject）
+  ├── ItemInfo          ← 道具基础配置（名称/图标/价格）
+  ├── ChipItemInfo      ← 芯片配置（继承 ItemInfo，加属性加成字段）
+  └── StoreConfig       ← 商店售卖列表配置
+
+  持久化数据层（MessagePack）
+  ├── BagData           ← 背包（货币 + 道具数量）
+  ├── CHChipsData       ← 各角色已装备芯片
+  └── CHSkillLevelData  ← 各角色技能等级
+
+  系统层（运行时逻辑）
+  ├── BagSystem         ← 增删查道具、货币收支
+  ├── StoreSystem       ← 购买/出售
+  ├── ChipSystem        ← 装备/卸载芯片 → 触发属性重算
+  └── SkillLevelSystem  ← 技能升级 → 更新 SkillContext.SkillLevel
+
+  ---
+  一、配置层（ScriptableObject）
+
+  // 所有道具基类
+  [CreateAssetMenu(menuName = "TPS/Item/ItemInfo")]
+  public class ItemInfo : ScriptableObject
+  {
+      public string assetID;
+      public string displayName;
+      public ItemType itemType;       // Consumable / Material / Chip / Weapon
+      public int buyPrice;
+      public int sellPrice;
+      public Sprite icon;
+      [TextArea] public string description;
+  }
+
+  // 芯片（可装备到角色槽位，提供属性加成）
+  [CreateAssetMenu(menuName = "TPS/Item/ChipItemInfo")]
+  public class ChipItemInfo : ItemInfo
+  {
+      public BonusType affectedStat;  // Attack / Defense / Speed / CritRate ...
+      public float bonusValue;
+      public ChipTier tier;           // Common / Rare / Epic / Legendary
+  }
+
+  // 商店售卖列表（挂在商店 NPC 的 SO 上）
+  [CreateAssetMenu(menuName = "TPS/Store/StoreConfig")]
+  public class StoreConfig : ScriptableObject
+  {
+      [System.Serializable]
+      public class StoreEntry
+      {
+          public ItemInfo item;
+          public int stock;           // -1 = 无限
+          public int priceOverride;   // 0 = 使用 ItemInfo.buyPrice
+      }
+      public List<StoreEntry> entries;
+  }
+
+  ---
+  二、持久化数据类（MessagePack）
+
+  [MessagePackObject]
+  public class BagData
+  {
+      [Key(0)] public int currency;
+      // assetID → 数量（芯片每个独立，用 assetID + 唯一实例ID区分）
+      [Key(1)] public Dictionary<string, int> stackableItems = new();
+      // 芯片：instanceID → assetID（非堆叠，每个是独立实例）
+      [Key(2)] public Dictionary<string, string> chipInstances = new();
+
+      public bool HasItem(string assetID, int amount = 1)
+          => stackableItems.TryGetValue(assetID, out int count) && count >= amount;
+
+      public void AddStackable(string assetID, int amount)
+      {
+          stackableItems.TryGetValue(assetID, out int cur);
+          stackableItems[assetID] = cur + amount;
+      }
+
+      public bool RemoveStackable(string assetID, int amount)
+      {
+          if (!HasItem(assetID, amount)) return false;
+          stackableItems[assetID] -= amount;
+          if (stackableItems[assetID] <= 0) stackableItems.Remove(assetID);
+          return true;
+      }
+
+      public string AddChip(string chipAssetID)
+      {
+          string instanceID = System.Guid.NewGuid().ToString("N")[..8];
+          chipInstances[instanceID] = chipAssetID;
+          return instanceID;
+      }
+
+      public void RemoveChip(string instanceID) => chipInstances.Remove(instanceID);
+  }
+
+  [MessagePackObject]
+  public class CHChipsData
+  {
+      // characterIndex → slot(0~3) → chipInstanceID（空字符串=未装备）
+      [Key(0)] public Dictionary<int, string[]> equippedChips = new();
+
+      public string GetChip(int charIndex, int slot)
+      {
+          if (!equippedChips.TryGetValue(charIndex, out var slots)) return "";
+          return slot < slots.Length ? slots[slot] : "";
+      }
+
+      public void SetChip(int charIndex, int slot, string instanceID)
+      {
+          if (!equippedChips.ContainsKey(charIndex))
+              equippedChips[charIndex] = new string[4];
+          equippedChips[charIndex][slot] = instanceID;
+      }
+  }
+
+  [MessagePackObject]
+  public class CHSkillLevelData
+  {
+      // characterIndex → [攻击等级, 天赋等级, 爆发等级]
+      [Key(0)] public Dictionary<int, int[]> levels = new();
+
+      public int GetLevel(int charIndex, int skillIndex)
+      {
+          if (!levels.TryGetValue(charIndex, out var arr)) return 1;
+          return skillIndex < arr.Length ? arr[skillIndex] : 1;
+      }
+
+      public void SetLevel(int charIndex, int skillIndex, int level)
+      {
+          if (!levels.ContainsKey(charIndex)) levels[charIndex] = new int[] { 1, 1, 1 };
+          levels[charIndex][skillIndex] = level;
+      }
+  }
+
+  ---
+  三、BagSystem
+
+  public class BagSystem
+  {
+      private static readonly BagSystem _instance = new();
+      public static BagSystem Instance => _instance;
+
+      private BagData Data => DataCenter.Instance.BagData;
+
+      public bool HasEnoughCurrency(int amount) => Data.currency >= amount;
+
+      public void AddCurrency(int amount)
+      {
+          Data.currency += amount;
+          NotifyBagChanged();
+      }
+
+      public bool SpendCurrency(int amount)
+      {
+          if (!HasEnoughCurrency(amount)) return false;
+          Data.currency -= amount;
+          NotifyBagChanged();
+          return true;
+      }
+
+      public void AddItem(string assetID, int amount = 1)
+      {
+          Data.AddStackable(assetID, amount);
+          NotifyBagChanged();
+      }
+
+      public bool RemoveItem(string assetID, int amount = 1)
+      {
+          bool success = Data.RemoveStackable(assetID, amount);
+          if (success) NotifyBagChanged();
+          return success;
+      }
+
+      // 芯片是非堆叠道具，获得时产生唯一实例
+      public string AddChip(string chipAssetID)
+      {
+          string instanceID = Data.AddChip(chipAssetID);
+          NotifyBagChanged();
+          return instanceID;
+      }
+
+      public void RemoveChip(string instanceID)
+      {
+          Data.RemoveChip(instanceID);
+          NotifyBagChanged();
+      }
+
+      private void NotifyBagChanged()
+          => EventCenter.Instance.SetEventTrigger(EventNames.BagUpdated);
+  }
+
+  ---
+  四、StoreSystem
+
+  public class StoreSystem
+  {
+      private static readonly StoreSystem _instance = new();
+      public static StoreSystem Instance => _instance;
+
+      // 购买（从商店）
+      public bool TryBuy(ItemInfo item, int amount = 1)
+      {
+          int totalCost = item.buyPrice * amount;
+          if (!BagSystem.Instance.HasEnoughCurrency(totalCost)) return false;
+
+          BagSystem.Instance.SpendCurrency(totalCost);
+
+          if (item is ChipItemInfo chip)
+          {
+              for (int i = 0; i < amount; i++)
+                  BagSystem.Instance.AddChip(chip.assetID);
+          }
+          else
+          {
+              BagSystem.Instance.AddItem(item.assetID, amount);
+          }
+
+          EventCenter.Instance.SetEventTrigger(EventNames.StorePurchased, item.assetID);
+          DataCenter.Instance.SaveAll();
+          return true;
+      }
+
+      // 出售（卖给商店）
+      public bool TrySell(string assetID, int amount = 1)
+      {
+          // 通过 assetID 查找 ItemInfo（从 Addressables 缓存或预加载的配置表）
+          ItemInfo item = ItemConfigCache.Get(assetID);
+          if (item == null) return false;
+          if (!BagSystem.Instance.RemoveItem(assetID, amount)) return false;
+
+          BagSystem.Instance.AddCurrency(item.sellPrice * amount);
+          DataCenter.Instance.SaveAll();
+          return true;
+      }
+
+      // 出售芯片（instanceID 版本）
+      public bool TrySellChip(string instanceID)
+      {
+          if (!DataCenter.Instance.BagData.chipInstances.TryGetValue(instanceID, out string assetID))
+              return false;
+
+          ItemInfo item = ItemConfigCache.Get(assetID);
+          if (item == null) return false;
+
+          BagSystem.Instance.RemoveChip(instanceID);
+          BagSystem.Instance.AddCurrency(item.sellPrice);
+          DataCenter.Instance.SaveAll();
+          return true;
+      }
+  }
+
+  ---
+  五、ChipSystem（装备芯片 → 触发属性重算）
+
+  public class ChipSystem
+  {
+      private static readonly ChipSystem _instance = new();
+      public static ChipSystem Instance => _instance;
+
+      private CHChipsData ChipsData => DataCenter.Instance.ChipsData;
+
+      // 装备：从背包移到角色槽位
+      public bool EquipChip(int charIndex, int slot, string chipInstanceID)
+      {
+          // 如果槽位已有芯片，先卸下
+          string existing = ChipsData.GetChip(charIndex, slot);
+          if (!string.IsNullOrEmpty(existing))
+              UnequipChip(charIndex, slot);
+
+          ChipsData.SetChip(charIndex, slot, chipInstanceID);
+          RecalculateStats(charIndex);
+          DataCenter.Instance.SaveAll();
+          return true;
+      }
+
+      // 卸下：芯片回背包
+      public void UnequipChip(int charIndex, int slot)
+      {
+          string instanceID = ChipsData.GetChip(charIndex, slot);
+          if (string.IsNullOrEmpty(instanceID)) return;
+
+          ChipsData.SetChip(charIndex, slot, "");
+          // 芯片已在 BagData.chipInstances 中，不需要重新添加
+          RecalculateStats(charIndex);
+          DataCenter.Instance.SaveAll();
+      }
+
+      // 重新计算该角色所有属性（芯片加成 + 基础属性）
+      private void RecalculateStats(int charIndex)
+      {
+          var driver = PlayerControlModule.Instance.TeamManager.Drivers[charIndex];
+          if (driver == null) return;
+
+          var bonuses = GetChipBonuses(charIndex);
+          driver.ActualData.ActualDataUpdate(driver.AssetInfo.baseData, bonuses);
+
+          EventCenter.Instance.SetEventTrigger(EventNames.CharacterStatsUpdated, charIndex);
+      }
+
+      // 汇总该角色所有装备芯片的加成
+      public List<(BonusType stat, float value)> GetChipBonuses(int charIndex)
+      {
+          var result = new List<(BonusType, float)>();
+          if (!ChipsData.equippedChips.TryGetValue(charIndex, out var slots)) return result;
+
+          foreach (string instanceID in slots)
+          {
+              if (string.IsNullOrEmpty(instanceID)) continue;
+              if (!DataCenter.Instance.BagData.chipInstances.TryGetValue(instanceID, out string assetID)) continue;
+
+              ChipItemInfo chip = ItemConfigCache.Get(assetID) as ChipItemInfo;
+              if (chip != null) result.Add((chip.affectedStat, chip.bonusValue));
+          }
+          return result;
+      }
+  }
+
+  StatusData.ActualDataUpdate 接收芯片加成列表，一次性重算所有属性：
+
+  public void ActualDataUpdate(CESODataBase baseData, List<(BonusType stat, float value)> chipBonuses)
+  {
+      // 基础属性（基础值 × 等级成长）
+      maxHP    = baseData.hp    * levelFactor;
+      attack   = baseData.attack * levelFactor;
+      defense  = baseData.defense * levelFactor;
+
+      // 叠加芯片加成
+      foreach (var (stat, value) in chipBonuses)
+      {
+          switch (stat)
+          {
+              case BonusType.Attack:   attack   += value; break;
+              case BonusType.Defense:  defense  += value; break;
+              case BonusType.CritRate: critRate += value; break;
+              // ...
+          }
+      }
+
+      // 再叠加战斗中的 Buff 加成
+      attack  *= (1f + BuffSystem.Instance.GetStatModifier(gameObject, BonusType.Attack));
+      defense *= (1f + BuffSystem.Instance.GetStatModifier(gameObject, BonusType.Defense));
+  }
+
+  ---
+  六、SkillLevelSystem
+
+  public class SkillLevelSystem
+  {
+      private static readonly SkillLevelSystem _instance = new();
+      public static SkillLevelSystem Instance => _instance;
+
+      private CHSkillLevelData LevelData => DataCenter.Instance.SkillLevelData;
+
+      // 升级技能（消耗货币 + 素材）
+      public bool TryLevelUp(int charIndex, int skillIndex, ItemInfo costMaterial, int costCount, int costCurrency)
+      {
+          int curLevel = LevelData.GetLevel(charIndex, skillIndex);
+          if (curLevel >= MaxSkillLevel) return false;
+          if (!BagSystem.Instance.HasEnoughCurrency(costCurrency)) return false;
+          if (!DataCenter.Instance.BagData.HasItem(costMaterial.assetID, costCount)) return false;
+
+          BagSystem.Instance.SpendCurrency(costCurrency);
+          BagSystem.Instance.RemoveItem(costMaterial.assetID, costCount);
+          LevelData.SetLevel(charIndex, skillIndex, curLevel + 1);
+
+          // 更新驱动器中的 SkillContext
+          var driver = PlayerControlModule.Instance.TeamManager.Drivers[charIndex];
+          driver?.RefreshSkillContext();
+
+          DataCenter.Instance.SaveAll();
+          EventCenter.Instance.SetEventTrigger(EventNames.SkillLevelUpdated, charIndex);
+          return true;
+      }
+
+      public int GetLevel(int charIndex, int skillIndex)
+          => LevelData.GetLevel(charIndex, skillIndex);
+
+      private const int MaxSkillLevel = 10;
+  }
+
+  CharacterAnimatorDriver 中 SkillContext.SkillLevel 通过以下方式初始化和刷新：
+
+  public void RefreshSkillContext()
+  {
+      int charIndex = PlayerControlModule.Instance.TeamManager.CurrentIndex;
+      _context.AttackLevel  = SkillLevelSystem.Instance.GetLevel(charIndex, 0);
+      _context.TalentLevel  = SkillLevelSystem.Instance.GetLevel(charIndex, 1);
+      _context.BurstLevel   = SkillLevelSystem.Instance.GetLevel(charIndex, 2);
+  }
+
+  ---
+  七、DataCenter（统一数据入口）
+
+  public class DataCenter : MonoBehaviour
+  {
+      private static DataCenter _instance;
+      public static DataCenter Instance => _instance;
+
+      public BagData BagData           { get; private set; }
+      public CHChipsData ChipsData     { get; private set; }
+      public CHSkillLevelData SkillLevelData { get; private set; }
+
+      private void Awake()
+      {
+          _instance = this;
+          LoadAllData();
+      }
+
+      private void LoadAllData()
+      {
+          BagData        = BinaryDataManager.Instance.Load<BagData>("Bag/", "BagData") ?? new BagData();
+          ChipsData      = BinaryDataManager.Instance.Load<CHChipsData>("Chips/", "ChipsData") ?? new CHChipsData();
+          SkillLevelData = BinaryDataManager.Instance.Load<CHSkillLevelData>("Skills/", "SkillLevels") ?? new CHSkillLevelData();
+      }
+
+      public void SaveAll()
+      {
+          BinaryDataManager.Instance.Save("Bag/", "BagData", BagData);
+          BinaryDataManager.Instance.Save("Chips/", "ChipsData", ChipsData);
+          BinaryDataManager.Instance.Save("Skills/", "SkillLevels", SkillLevelData);
+      }
+  }
+
+  ---
+  完整数据流示例
+
+  玩家在商店购买攻击芯片
+    └─→ StoreSystem.TryBuy(chipItem)
+          ├─→ BagSystem.SpendCurrency(price)
+          └─→ BagSystem.AddChip(assetID) → 生成 instanceID 存入 BagData
+
+  玩家将芯片装备到角色0槽位1
+    └─→ ChipSystem.EquipChip(0, 1, instanceID)
+          ├─→ CHChipsData 记录装备关系
+          └─→ RecalculateStats(0)
+                └─→ ActualDataUpdate(baseData, chipBonuses)
+                      └─→ attack/defense 重算完成
+                            └─→ 广播 CharacterStatsUpdated(0)
+                                  └─→ UI 面板刷新属性显示
+
+  技能升级
+    └─→ SkillLevelSystem.TryLevelUp(charIndex, skillIndex, ...)
+          ├─→ 消耗货币 + 素材
+          ├─→ CHSkillLevelData 更新等级
+          └─→ CharacterAnimatorDriver.RefreshSkillContext()
+                └─→ SkillContext.TalentLevel = 新等级
+                      └─→ CharacterSkillBehavior.OnTalent(ctx) 读取新等级计算伤害

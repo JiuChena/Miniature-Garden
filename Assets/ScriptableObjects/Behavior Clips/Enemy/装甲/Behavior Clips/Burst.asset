@@ -1,0 +1,169 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4729dab1b065fe941aa6d4f9dd582add, type: 3}
+  m_Name: Burst
+  m_EditorClassIdentifier: 
+  animationSegments:
+  - authoringTrackName: Animation Track
+    clip: {fileID: -5880604675807966338, guid: ce76cfa7032cf974982d00bd800a3334, type: 3}
+    crossFadeDuration: 0
+    layer: 0
+    startTime: 0
+  totalDuration: 8.433333
+  wrapMode: 1
+  speedMultiplier: 1
+  events: []
+  hitboxes: []
+  priority: 2
+  comboInputWindowStart: 0.6
+  comboInputWindowEnd: 0.95
+  transitions: []
+  authoringTracks:
+  - trackName: Behavior Meta
+    trackKind: 0
+    sortIndex: 0
+    clips:
+    - displayName: Behavior Meta
+      startTime: 0
+      duration: 0.1
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: 
+        time: 0
+        type: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 0}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+  - trackName: Animation Track
+    trackKind: 1
+    sortIndex: 1
+    clips:
+    - displayName: EnemyTSS_PowerLoader_PMC_Exs2
+      startTime: 0
+      duration: 8.433333
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: Animation Track
+        clip: {fileID: -5880604675807966338, guid: ce76cfa7032cf974982d00bd800a3334,
+          type: 3}
+        crossFadeDuration: 0
+        layer: 0
+        startTime: 0
+      behaviorEvent:
+        authoringTrackName: 
+        time: 0
+        type: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 0}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+  - trackName: Audio Track
+    trackKind: 2
+    sortIndex: 2
+    clips: []
+  - trackName: Behavior Timeline Event Track
+    trackKind: 5
+    sortIndex: 3
+    clips: []

@@ -1,0 +1,35 @@
+fileFormatVersion: 2
+guid: b20e4f2ce75b30147887abff02c63b0c
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - currentCharacterIcon: {instanceID: 0}
+  - currentCharacterTalentIcon: {instanceID: 0}
+  - currentCharacterBurstIcon: {instanceID: 0}
+  - currentCharacterTalentCooldownMask: {instanceID: 0}
+  - currentCharacterBurstCooldownMask: {instanceID: 0}
+  - currentCharacterWeaponIcon: {instanceID: 0}
+  - currentCharacterHealth: {instanceID: 0}
+  - currentCharacterHealthText: {instanceID: 0}
+  - teamCharacterItem1: {instanceID: 0}
+  - teamCharacterItem2: {instanceID: 0}
+  - teamCharacterItem3: {instanceID: 0}
+  - teamCharacterActived1: {instanceID: 0}
+  - teamCharacterActived2: {instanceID: 0}
+  - teamCharacterActived3: {instanceID: 0}
+  - teamCharacterIcon1: {instanceID: 0}
+  - teamCharacterIcon2: {instanceID: 0}
+  - teamCharacterIcon3: {instanceID: 0}
+  - teamCharacterName1: {instanceID: 0}
+  - teamCharacterName2: {instanceID: 0}
+  - teamCharacterName3: {instanceID: 0}
+  - teamCharacterHealth1: {instanceID: 0}
+  - teamCharacterHealth2: {instanceID: 0}
+  - teamCharacterHealth3: {instanceID: 0}
+  - grayMaterial: {fileID: 2100000, guid: 4cf97d75f2dd1f640bf1edfd4d7ed8e4, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

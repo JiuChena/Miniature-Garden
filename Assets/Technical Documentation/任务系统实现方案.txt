@@ -1,0 +1,561 @@
+  ---
+  整体结构
+
+  配置层（ScriptableObject）
+  ├── QuestDataSO          ← 任务定义（阶段/条件/奖励）
+  └── DialogueDataSO       ← 对话树数据（节点/玩家选项）
+
+  持久化层（MessagePack）
+  └── QuestSaveData        ← 已完成/进行中任务 + 条件进度
+
+  运行时系统
+  ├── QuestManager         ← 任务状态机，核心调度
+  ├── QuestConditionTracker ← 订阅游戏事件，推进条件进度
+  └── DialogueSystem       ← 对话树执行器
+
+  场景组件
+  └── AreaTrigger          ← 到达类条件触发器
+
+  UI
+  ├── DialoguePanel        ← 对话界面（台词 + 玩家选项）
+  ├── QuestPanel           ← 任务日志（主线/支线/日常/已完成）
+  └── QuestTrackerUI       ← HUD 任务追踪（当前目标进度）
+
+  ---
+  一、配置层（ScriptableObject）
+
+  [CreateAssetMenu(menuName = "TPS/Quest/QuestData")]
+  public class QuestDataSO : ScriptableObject
+  {
+      public string questID;
+      public string displayName;
+      public QuestType questType;             // Main / Side / Daily
+      [TextArea] public string description;
+      public string[] prerequisiteQuestIDs;   // 前置任务（全部完成才能接取）
+
+      public QuestStage[] stages;             // 顺序执行
+      public QuestReward reward;
+
+      public DialogueDataSO acceptDialogue;   // 接取时播放
+      public DialogueDataSO completeDialogue; // 完成时播放
+  }
+
+  [System.Serializable]
+  public class QuestStage
+  {
+      public string stageID;
+      public string description;          // "前往仓库区域"
+      public QuestCondition[] conditions; // 全部满足才进入下一阶段
+  }
+
+  [System.Serializable]
+  public class QuestCondition
+  {
+      public QuestConditionType type;     // Kill / Collect / Reach / Interact
+      public string targetID;             // 敌人assetID / 道具assetID / 区域ID / 交互ID
+      public int requiredCount;
+      public string displayText;          // "击杀守卫 x{0}/{1}"
+  }
+
+  [System.Serializable]
+  public class QuestReward
+  {
+      public int currency;
+      public ItemReward[] items;
+  }
+
+  [System.Serializable]
+  public class ItemReward
+  {
+      public ItemInfo item;
+      public int count;
+  }
+
+  // ── 对话树 ──────────────────────────────────────────
+
+  [CreateAssetMenu(menuName = "TPS/Quest/DialogueData")]
+  public class DialogueDataSO : ScriptableObject
+  {
+      public string startNodeID;
+      public DialogueNode[] nodes;
+
+      public DialogueNode GetNode(string id)
+          => System.Array.Find(nodes, n => n.nodeID == id);
+  }
+
+  [System.Serializable]
+  public class DialogueNode
+  {
+      public string nodeID;
+      public string speakerName;
+      [TextArea] public string content;
+      public DialogueChoice[] choices;    // 空 = 无选项，直接继续
+      public string nextNodeID;           // 无选项时跳转
+  }
+
+  [System.Serializable]
+  public class DialogueChoice
+  {
+      public string text;             // 玩家选项文本
+      public string nextNodeID;
+      public string triggerEventName; // 选择后可触发事件（如开启支线）
+  }
+
+  ---
+  二、持久化层（MessagePack）
+
+  [MessagePackObject]
+  public class QuestSaveData
+  {
+      [Key(0)] public List<string> completedQuestIDs = new();
+      [Key(1)] public Dictionary<string, QuestProgress> activeQuests = new();
+      [Key(2)] public Dictionary<string, long> dailyLastClaimTime = new(); // questID → UTC ticks
+  }
+
+  [MessagePackObject]
+  public class QuestProgress
+  {
+      [Key(0)] public string questID;
+      [Key(1)] public int currentStageIndex;
+      // key = "questID_stageIndex_conditionIndex", value = 当前数量
+      [Key(2)] public Dictionary<string, int> conditionProgress = new();
+  }
+
+  ---
+  三、QuestManager
+
+  任务状态机，负责接取 / 推进 / 完成：
+
+  public class QuestManager
+  {
+      private static readonly QuestManager _instance = new();
+      public static QuestManager Instance => _instance;
+
+      private QuestSaveData SaveData => DataCenter.Instance.QuestSaveData;
+
+      public bool IsCompleted(string questID) => SaveData.completedQuestIDs.Contains(questID);
+      public bool IsActive(string questID)    => SaveData.activeQuests.ContainsKey(questID);
+
+      public bool CanAccept(QuestDataSO quest)
+      {
+          if (IsCompleted(quest.questID) || IsActive(quest.questID)) return false;
+          foreach (string pre in quest.prerequisiteQuestIDs)
+              if (!IsCompleted(pre)) return false;
+          if (quest.questType == QuestType.Daily)
+              return IsDailyAvailable(quest.questID);
+          return true;
+      }
+
+      public void AcceptQuest(QuestDataSO quest)
+      {
+          if (!CanAccept(quest)) return;
+          SaveData.activeQuests[quest.questID] = new QuestProgress
+          {
+              questID = quest.questID,
+              currentStageIndex = 0
+          };
+          DataCenter.Instance.SaveAll();
+          EventCenter.Instance.SetEventTrigger(EventNames.QuestAccepted, quest.questID);
+      }
+
+      // 由 QuestConditionTracker 调用，每次条件计数变化后检测
+      public void CheckStageCompletion(string questID, QuestDataSO questData)
+      {
+          if (!SaveData.activeQuests.TryGetValue(questID, out var progress)) return;
+
+          var stage = questData.stages[progress.currentStageIndex];
+
+          // 检测本阶段所有条件是否满足
+          for (int i = 0; i < stage.conditions.Length; i++)
+          {
+              string key = ConditionKey(questID, progress.currentStageIndex, i);
+              int cur = progress.conditionProgress.GetValueOrDefault(key, 0);
+              if (cur < stage.conditions[i].requiredCount) return; // 还未满足
+          }
+
+          // 本阶段完成
+          progress.currentStageIndex++;
+          DataCenter.Instance.SaveAll();
+
+          if (progress.currentStageIndex >= questData.stages.Length)
+              CompleteQuest(questID, questData);
+          else
+              EventCenter.Instance.SetEventTrigger(EventNames.QuestStageAdvanced, questID);
+      }
+
+      private void CompleteQuest(string questID, QuestDataSO questData)
+      {
+          SaveData.activeQuests.Remove(questID);
+          SaveData.completedQuestIDs.Add(questID);
+          if (questData.questType == QuestType.Daily)
+              SaveData.dailyLastClaimTime[questID] = System.DateTime.UtcNow.Ticks;
+
+          GiveReward(questData.reward);
+          DataCenter.Instance.SaveAll();
+          EventCenter.Instance.SetEventTrigger(EventNames.QuestCompleted, questID);
+      }
+
+      private void GiveReward(QuestReward reward)
+      {
+          BagSystem.Instance.AddCurrency(reward.currency);
+          foreach (var r in reward.items)
+          {
+              if (r.item is ChipItemInfo chip)
+                  for (int i = 0; i < r.count; i++) BagSystem.Instance.AddChip(chip.assetID);
+              else
+                  BagSystem.Instance.AddItem(r.item.assetID, r.count);
+          }
+      }
+
+      // 每天重置日常任务
+      private bool IsDailyAvailable(string questID)
+      {
+          if (!SaveData.dailyLastClaimTime.TryGetValue(questID, out long ticks)) return true;
+          return System.DateTime.UtcNow.Date > new System.DateTime(ticks).Date;
+      }
+
+      public IEnumerable<QuestProgress> GetActiveProgresses()
+          => SaveData.activeQuests.Values;
+
+      public static string ConditionKey(string questID, int stageIdx, int conditionIdx)
+          => $"{questID}_{stageIdx}_{conditionIdx}";
+  }
+
+  ---
+  四、QuestConditionTracker
+
+  统一订阅游戏事件，被动推进条件进度：
+
+  public class QuestConditionTracker
+  {
+      private static readonly QuestConditionTracker _instance = new();
+      public static QuestConditionTracker Instance => _instance;
+
+      // 需要持有已加载的 QuestDataSO 引用（从 Addressables 预加载）
+      private Dictionary<string, QuestDataSO> _questDataCache = new();
+
+      public void RegisterQuestData(QuestDataSO data) => _questDataCache[data.questID] = data;
+
+      public void StartTracking()
+      {
+          EventCenter.Instance.AddEventListener<GameObject>(EventNames.UnitDeath, OnUnitDeath);
+          EventCenter.Instance.AddEventListener(EventNames.BagUpdated, OnBagUpdated);
+          EventCenter.Instance.AddEventListener<string>(EventNames.AreaEntered, OnAreaEntered);
+          EventCenter.Instance.AddEventListener<string>(EventNames.InteractionPerformed, OnInteractionPerformed);
+      }
+
+      private void OnUnitDeath(GameObject unit)
+      {
+          string assetID = unit.GetComponent<EnemyAnimatorDriver>()?.AssetInfo?.assetID;
+          if (assetID != null) UpdateConditions(QuestConditionType.Kill, assetID, 1);
+      }
+
+      private void OnBagUpdated()
+      {
+          // 收集类条件：直接用背包当前数量对比
+          foreach (var progress in QuestManager.Instance.GetActiveProgresses())
+          {
+              if (!_questDataCache.TryGetValue(progress.questID, out var data)) continue;
+              var stage = data.stages[progress.currentStageIndex];
+              for (int i = 0; i < stage.conditions.Length; i++)
+              {
+                  var condition = stage.conditions[i];
+                  if (condition.type != QuestConditionType.Collect) continue;
+
+                  int bagCount = DataCenter.Instance.BagData.stackableItems
+                                 .GetValueOrDefault(condition.targetID, 0);
+                  string key = QuestManager.ConditionKey(progress.questID, progress.currentStageIndex, i);
+                  progress.conditionProgress[key] = Mathf.Min(bagCount, condition.requiredCount);
+              }
+              QuestManager.Instance.CheckStageCompletion(progress.questID, data);
+          }
+      }
+
+      private void OnAreaEntered(string areaID)
+          => UpdateConditions(QuestConditionType.Reach, areaID, 1);
+
+      private void OnInteractionPerformed(string interactionID)
+          => UpdateConditions(QuestConditionType.Interact, interactionID, 1);
+
+      private void UpdateConditions(QuestConditionType type, string targetID, int addCount)
+      {
+          foreach (var progress in QuestManager.Instance.GetActiveProgresses())
+          {
+              if (!_questDataCache.TryGetValue(progress.questID, out var data)) continue;
+              var stage = data.stages[progress.currentStageIndex];
+              for (int i = 0; i < stage.conditions.Length; i++)
+              {
+                  var condition = stage.conditions[i];
+                  if (condition.type != type || condition.targetID != targetID) continue;
+
+                  string key = QuestManager.ConditionKey(progress.questID, progress.currentStageIndex, i);
+                  progress.conditionProgress.TryGetValue(key, out int cur);
+                  progress.conditionProgress[key] = Mathf.Min(cur + addCount, condition.requiredCount);
+              }
+              QuestManager.Instance.CheckStageCompletion(progress.questID, data);
+          }
+      }
+  }
+
+  ▎ InteractionBase.OnInteract() 末尾加一行：
+  ▎ EventCenter.Instance.SetEventTrigger(EventNames.InteractionPerformed, InteractionID);
+
+  ---
+  五、AreaTrigger（到达类条件）
+
+  [RequireComponent(typeof(Collider))]
+  public class AreaTrigger : MonoBehaviour
+  {
+      [SerializeField] private string areaID;
+      [SerializeField] private bool triggerOnce = true;
+      private bool _triggered;
+
+      private void Awake() => GetComponent<Collider>().isTrigger = true;
+
+      private void OnTriggerEnter(Collider other)
+      {
+          if (triggerOnce && _triggered) return;
+          if (((1 << other.gameObject.layer) & playerLayer) == 0) return;
+
+          _triggered = true;
+          EventCenter.Instance.SetEventTrigger(EventNames.AreaEntered, areaID);
+      }
+  }
+
+  ---
+  六、DialogueSystem + DialoguePanel
+
+  // 对话执行器（纯逻辑，不依赖 UI）
+  public class DialogueSystem
+  {
+      private static readonly DialogueSystem _instance = new();
+      public static DialogueSystem Instance => _instance;
+
+      private DialogueDataSO _current;
+      private DialogueNode _currentNode;
+
+      public event System.Action<DialogueNode> OnNodeChanged;
+      public event System.Action OnDialogueEnd;
+
+      public void StartDialogue(DialogueDataSO data)
+      {
+          _current = data;
+          GoToNode(data.startNodeID);
+          EventCenter.Instance.SetEventTrigger(EventNames.DialogueStarted);
+          PlayerControlModule.Instance.InputManager.EnableUIMap();
+      }
+
+      private void GoToNode(string nodeID)
+      {
+          _currentNode = _current.GetNode(nodeID);
+          if (_currentNode == null) { EndDialogue(); return; }
+          OnNodeChanged?.Invoke(_currentNode);
+      }
+
+      // 无选项时玩家按继续
+      public void Continue()
+      {
+          if (_currentNode.choices.Length > 0) return;
+          if (string.IsNullOrEmpty(_currentNode.nextNodeID)) { EndDialogue(); return; }
+          GoToNode(_currentNode.nextNodeID);
+      }
+
+      // 玩家选择选项
+      public void SelectChoice(int index)
+      {
+          if (index >= _currentNode.choices.Length) return;
+          var choice = _currentNode.choices[index];
+
+          if (!string.IsNullOrEmpty(choice.triggerEventName))
+              EventCenter.Instance.SetEventTrigger(choice.triggerEventName);
+
+          if (string.IsNullOrEmpty(choice.nextNodeID)) { EndDialogue(); return; }
+          GoToNode(choice.nextNodeID);
+      }
+
+      private void EndDialogue()
+      {
+          _current = null;
+          PlayerControlModule.Instance.InputManager.EnableGameplayMap();
+          EventCenter.Instance.SetEventTrigger(EventNames.DialogueEnded);
+          OnDialogueEnd?.Invoke();
+      }
+  }
+
+  // ── UI ──────────────────────────────────────────────
+
+  public class DialoguePanel : PanelBase
+  {
+      private TMP_Text _speakerText;
+      private TMP_Text _contentText;
+      private Button _continueBtn;
+      private Transform _choicesRoot;
+      private Button _choiceBtnPrefab;
+
+      protected override void LoadInit()
+      {
+          DialogueSystem.Instance.OnNodeChanged += ShowNode;
+          DialogueSystem.Instance.OnDialogueEnd += () => DestroyPanel();
+      }
+
+      protected override void ComponentInit()
+      {
+          _speakerText  = transform.Find("Speaker").GetComponent<TMP_Text>();
+          _contentText  = transform.Find("Content").GetComponent<TMP_Text>();
+          _continueBtn  = transform.Find("ContinueBtn").GetComponent<Button>();
+          _choicesRoot  = transform.Find("Choices");
+
+          _continueBtn.onClick.AddListener(() => DialogueSystem.Instance.Continue());
+      }
+
+      private void ShowNode(DialogueNode node)
+      {
+          _speakerText.text = node.speakerName;
+          StopAllCoroutines();
+          StartCoroutine(TypewriterEffect(node.content));
+
+          bool hasChoices = node.choices.Length > 0;
+          _continueBtn.gameObject.SetActive(!hasChoices);
+
+          // 清除旧选项
+          foreach (Transform child in _choicesRoot) Destroy(child.gameObject);
+
+          for (int i = 0; i < node.choices.Length; i++)
+          {
+              int idx = i;
+              var btn = Instantiate(_choiceBtnPrefab, _choicesRoot);
+              btn.GetComponentInChildren<TMP_Text>().text = node.choices[i].text;
+              btn.onClick.AddListener(() => DialogueSystem.Instance.SelectChoice(idx));
+          }
+      }
+
+      private IEnumerator TypewriterEffect(string text)
+      {
+          _contentText.text = "";
+          foreach (char c in text)
+          {
+              _contentText.text += c;
+              yield return new WaitForSeconds(0.03f);
+          }
+      }
+  }
+
+  NPC 接取任务时调用：
+
+  public class QuestNPCInteraction : InteractionBase
+  {
+      [SerializeField] private QuestDataSO questData;
+
+      public override string PromptText => QuestManager.Instance.IsCompleted(questData.questID)
+          ? "（任务已完成）"
+          : QuestManager.Instance.IsActive(questData.questID)
+              ? "F - 提交任务"
+              : "F - 接取任务";
+
+      public override bool CanInteract(GameObject interactor)
+          => !QuestManager.Instance.IsCompleted(questData.questID);
+
+      public override void OnInteract(GameObject interactor)
+      {
+          bool isActive = QuestManager.Instance.IsActive(questData.questID);
+          var dialogue = isActive ? questData.completeDialogue : questData.acceptDialogue;
+
+          PanelManager.Instance.PanelDisplay<DialoguePanel>("DialoguePanel");
+          DialogueSystem.Instance.StartDialogue(dialogue);
+
+          if (!isActive)
+              DialogueSystem.Instance.OnDialogueEnd += () => QuestManager.Instance.AcceptQuest(questData);
+          else
+              DialogueSystem.Instance.OnDialogueEnd += () =>
+              {
+                  // 到达对话结尾即视为完成（也可在特定节点触发）
+                  // QuestManager 的 CompleteQuest 已在 CheckStageCompletion 中自动调用
+              };
+      }
+  }
+
+  ---
+  七、QuestTrackerUI（HUD 追踪条）
+
+  public class QuestTrackerUI : MonoBehaviour
+  {
+      private TMP_Text _titleText;
+      private TMP_Text _objectiveText;
+      private string _trackedQuestID;
+
+      private void OnEnable()
+      {
+          EventCenter.Instance.AddEventListener<string>(EventNames.QuestAccepted, OnQuestAccepted);
+          EventCenter.Instance.AddEventListener<string>(EventNames.QuestStageAdvanced, Refresh);
+          EventCenter.Instance.AddEventListener<string>(EventNames.QuestCompleted, OnQuestCompleted);
+      }
+
+      private void OnQuestAccepted(string questID)
+      {
+          _trackedQuestID = questID;   // 默认追踪最新接取的任务
+          Refresh(questID);
+      }
+
+      private void Refresh(string questID)
+      {
+          if (questID != _trackedQuestID) return;
+          var progress = DataCenter.Instance.QuestSaveData.activeQuests.GetValueOrDefault(questID);
+          var data = QuestConditionTracker.Instance.GetQuestData(questID);
+          if (progress == null || data == null) return;
+
+          var stage = data.stages[progress.currentStageIndex];
+          _titleText.text = data.displayName;
+          _objectiveText.text = BuildObjectiveText(progress, stage);
+      }
+
+      private string BuildObjectiveText(QuestProgress progress, QuestStage stage)
+      {
+          var sb = new System.Text.StringBuilder();
+          for (int i = 0; i < stage.conditions.Length; i++)
+          {
+              var cond = stage.conditions[i];
+              string key = QuestManager.ConditionKey(progress.questID, progress.currentStageIndex, i);
+              int cur = progress.conditionProgress.GetValueOrDefault(key, 0);
+              sb.AppendLine(string.Format(cond.displayText, cur, cond.requiredCount));
+          }
+          return sb.ToString();
+      }
+
+      private void OnQuestCompleted(string questID)
+      {
+          if (questID == _trackedQuestID)
+              gameObject.SetActive(false);
+      }
+  }
+
+  ---
+  完整任务流
+
+  玩家与 QuestNPC 交互
+    └─→ DialogueSystem.StartDialogue(acceptDialogue)
+          └─→ DialoguePanel 显示对话，玩家选择
+                └─→ 对话结束 → QuestManager.AcceptQuest()
+                      └─→ QuestSaveData 记录任务进度
+                            └─→ 广播 QuestAccepted
+                                  └─→ QuestTrackerUI 显示目标
+
+  玩家击杀敌人
+    └─→ EventCenter 广播 UnitDeath
+          └─→ QuestConditionTracker.OnUnitDeath()
+                └─→ conditionProgress["questID_0_0"] += 1
+                      └─→ QuestManager.CheckStageCompletion()
+                            ├─→ 未满足 → 更新 HUD 进度显示
+                            └─→ 满足 → 推进到下一阶段 or 完成任务
+                                  └─→ 完成时 → GiveReward → SaveAll
+                                            └─→ 广播 QuestCompleted
+
+  ---
+  EventNames 补充
+
+  public const string QuestAccepted      = nameof(QuestAccepted);      // string questID
+  public const string QuestStageAdvanced = nameof(QuestStageAdvanced); // string questID
+  public const string QuestCompleted     = nameof(QuestCompleted);     // string questID
+  public const string DialogueStarted    = nameof(DialogueStarted);
+  public const string DialogueEnded      = nameof(DialogueEnded);
+  public const string AreaEntered        = nameof(AreaEntered);        // string areaID
+  public const string InteractionPerformed = nameof(InteractionPerformed); // string interactionID

@@ -1,0 +1,295 @@
+﻿鈼?鐜╁鎺у埗绯荤粺鐢?5 涓ā鍧楃粍鎴愶紝PlayerControlModule 浣滃崗璋冨櫒锛屽叾浣?4 涓悇鍙稿叾鑱屻€?
+
+  ---
+  鏁翠綋缁撴瀯
+
+  PlayerControlModule锛堝崗璋冨櫒锛屽澶栫粺涓€鍏ュ彛锛?
+  鈹溾攢鈹€ PlayerInputManager     鈫?姣忓抚鏀堕泦杈撳叆锛屼骇鍑?PlayerInputData 蹇収
+  鈹溾攢鈹€ TeamManager            鈫?闃熶紞绠＄悊锛氬姞杞?鍒囨崲/姝讳骸澶勭悊
+  鈹溾攢鈹€ PlayerCameraController 鈫?鎽勫儚鏈鸿窡闅忎笌瑙嗚鍒囨崲
+  鈹斺攢鈹€ EnergySystem           鈫?鑳介噺绉疮涓庢秷鑰?
+
+  ---
+  涓€銆丳layerInputData锛堣緭鍏ュ揩鐓э紝绾暟鎹被锛?
+
+  鎵€鏈夋垬鏂?鎺у埗妯″潡鍙杩欎釜瀵硅薄锛屼笉鐩存帴璁块棶 Input System锛?
+
+  public class PlayerInputData
+  {
+      public Vector2 MoveInput;       // WASD
+      public Vector2 LookInput;       // 榧犳爣绉诲姩
+      public bool IsShooting;         // 宸﹂敭鎸佺画灏勫嚮
+      public bool IsAiming;           // 鍙抽敭鐬勫噯
+      public bool IsSprinting;        // Shift 鍐插埡
+      public bool JumpPressed;        // Space锛堝崟甯э級
+      public bool CrouchPressed;      // Ctrl锛堝崟甯э級
+      public bool TalentPressed;      // Q 澶╄祴鎶€鑳斤紙鍗曞抚锛?
+      public bool BurstPressed;       // E 鐖嗗彂鎶€鑳斤紙鍗曞抚锛?
+      public bool InteractPressed;    // F 浜や簰锛堝崟甯э級
+      public int SwitchIndex;         // 1~4 鍒囨崲瑙掕壊锛?1=鏃犺緭鍏?
+      public int ScrollDelta;         // 婊氳疆鍒囨崲锛?1/-1锛?
+  }
+
+  ---
+  浜屻€丳layerInputManager
+
+  灏佽 Unity New Input System锛屾瘡甯ф洿鏂板揩鐓э細
+
+  public class PlayerInputManager : MonoBehaviour
+  {
+      private PlayerInputActions _actions;   // 鐢?Input Action Asset 鐢熸垚
+      public PlayerInputData Data { get; } = new();
+
+      private void Awake() => _actions = new PlayerInputActions();
+      private void OnEnable()  => _actions.Enable();
+      private void OnDisable() => _actions.Disable();
+
+      private void Update()
+      {
+          Data.MoveInput   = _actions.Player.Move.ReadValue<Vector2>();
+          Data.LookInput   = _actions.Player.Look.ReadValue<Vector2>();
+          Data.IsShooting  = _actions.Player.Fire.IsPressed();
+          Data.IsAiming    = _actions.Player.Aim.IsPressed();
+          Data.IsSprinting = _actions.Player.Sprint.IsPressed();
+          // 鍗曞抚鎸夐敭鐢?WasPressedThisFrame()
+          Data.JumpPressed   = _actions.Player.Jump.WasPressedThisFrame();
+          Data.TalentPressed = _actions.Player.Talent.WasPressedThisFrame();
+          Data.BurstPressed  = _actions.Player.Burst.WasPressedThisFrame();
+          Data.SwitchIndex   = ReadSwitchIndex();
+          Data.ScrollDelta   = Mathf.RoundToInt(_actions.Player.ScrollSwitch.ReadValue<float>());
+      }
+
+      // 鍒囨崲杈撳叆鍦板浘锛堟垬鏂?UI 鍒嗙锛?
+      public void EnableGameplayMap() => _actions.Player.Enable();
+      public void EnableUIMap()       => _actions.Player.Disable();
+  }
+
+  鈻?鍏抽敭鐐癸細WasPressedThisFrame() 淇濊瘉鍗曞抚瑙﹀彂锛屼笉浼氳鍚庣画甯ч噸澶嶈鍙栥€?
+
+  ---
+  涓夈€乀eamManager
+
+  绠＄悊 4 鍚嶈鑹茬殑瀹屾暣鐢熷懡鍛ㄦ湡锛?
+
+  public class TeamManager : MonoBehaviour
+  {
+      [SerializeField] private UnitAssetInformation[] _assetInfos; // 4涓猄O閰嶇疆
+
+      public CharacterAnimatorDriver[] Drivers { get; private set; } = new CharacterAnimatorDriver[4];
+      public int CurrentIndex { get; private set; } = 0;
+      public CharacterAnimatorDriver CurrentDriver => Drivers[CurrentIndex];
+
+      private float _switchCooldown;
+      private const float SwitchCooldownTime = 0.5f;
+
+      // 娓告垙寮€濮嬫椂寮傛鍔犺浇鍏ㄩ儴瑙掕壊
+      public async Task LoadTeamAsync()
+      {
+          for (int i = 0; i < _assetInfos.Length; i++)
+          {
+              if (_assetInfos[i] == null) continue;
+              GameObject obj = await AddressableManager.Instance.LoadAssetAsync<GameObject>
+                                  (_assetInfos[i].assetID);
+              GameObject instance = Instantiate(obj, spawnPoints[i].position, Quaternion.identity);
+              Drivers[i] = instance.GetComponent<CharacterAnimatorDriver>();
+              Drivers[i].Initialize(_assetInfos[i]);
+              // 闈炲綋鍓嶈鑹插垵濮嬬鐢ㄨ緭鍏?
+              if (i != 0) Drivers[i].SetInputEnabled(false);
+          }
+      }
+
+      private void Update()
+      {
+          if (_switchCooldown > 0) _switchCooldown -= Time.deltaTime;
+      }
+
+      public void TrySwitchTo(int index)
+      {
+          if (index == CurrentIndex) return;
+          if (index < 0 || index >= Drivers.Length) return;
+          if (Drivers[index] == null) return;
+          if (Drivers[index].ActualData.IsDead) return;
+          if (_switchCooldown > 0) return;
+
+          Drivers[CurrentIndex].SetInputEnabled(false);
+          CurrentIndex = index;
+          Drivers[CurrentIndex].SetInputEnabled(true);
+          _switchCooldown = SwitchCooldownTime;
+
+          EventCenter.Instance.SetEventTrigger(EventNames.CharacterSwitched, CurrentIndex);
+      }
+
+      // 褰撳墠瑙掕壊姝讳骸鏃惰嚜鍔ㄥ垏鎹?
+      public void OnCurrentCharacterDeath()
+      {
+          for (int i = 0; i < Drivers.Length; i++)
+          {
+              if (i != CurrentIndex && Drivers[i] != null && !Drivers[i].ActualData.IsDead)
+              {
+                  TrySwitchTo(i);
+                  return;
+              }
+          }
+          // 鍏ㄧ伃
+          EventCenter.Instance.SetEventTrigger(EventNames.GameOver);
+      }
+  }
+
+  ---
+  鍥涖€丳layerCameraController
+
+  姣忎釜瑙掕壊棰勫埗浣撹嚜甯︿袱涓?Cinemachine Virtual Camera锛堣窡闅?鐬勫噯锛夛紝鍒囪鑹叉椂鍒囨崲婵€娲荤姸鎬侊細
+
+  public class PlayerCameraController : MonoBehaviour
+  {
+      // 姣忎釜瑙掕壊鏈変竴瀵硅櫄鎷熺浉鏈猴紝鎸傚湪瑙掕壊棰勫埗浣撲笂
+      // followCam锛氭甯歌窡闅忥紱aimCam锛氱瀯鍑嗚偐瓒婅偐瑙嗚
+
+      private CinemachineVirtualCamera _activeFollowCam;
+      private CinemachineVirtualCamera _activeAimCam;
+      private bool _isAiming;
+
+      public void SwitchToCharacter(CharacterAnimatorDriver driver)
+      {
+          _activeFollowCam?.gameObject.SetActive(false);
+          _activeAimCam?.gameObject.SetActive(false);
+
+          _activeFollowCam = driver.FollowCamera;
+          _activeAimCam    = driver.AimCamera;
+
+          _activeFollowCam.gameObject.SetActive(!_isAiming);
+          _activeAimCam.gameObject.SetActive(_isAiming);
+      }
+
+      public void SetAiming(bool isAiming)
+      {
+          _isAiming = isAiming;
+          _activeFollowCam?.gameObject.SetActive(!isAiming);
+          _activeAimCam?.gameObject.SetActive(isAiming);
+      }
+
+      private void Update()
+      {
+          var input = PlayerControlModule.Instance.InputManager.Data;
+          SetAiming(input.IsAiming);
+      }
+  }
+
+  鈻?Cinemachine 鐨?Brain 璐熻矗鍦ㄤ袱涓?VCam 涔嬮棿鍋氬钩婊戣繃娓★紝PlayerCameraController 鍙寮€鍏冲摢涓槸婵€娲荤姸鎬併€?
+
+  ---
+  浜斻€丒nergySystem
+
+  public class EnergySystem : MonoBehaviour
+  {
+      public const float MaxEnergy = 10f;
+      private float _curEnergy;
+      private float _efficiency = 1f;   // 鍙 Buff 淇敼
+
+      public float CurrentEnergy => _curEnergy;
+      public bool IsFull => _curEnergy >= MaxEnergy;
+
+      // 閫犳垚浼ゅ鏃剁Н绱兘閲忥紙鐢?GeneralDataHandler/BulletDriverModule 璋冪敤锛?
+      public void GainEnergy(float amount)
+      {
+          _curEnergy = Mathf.Min(MaxEnergy, _curEnergy + amount * _efficiency);
+          EventCenter.Instance.SetEventTrigger(EventNames.EnergyChanged, _curEnergy);
+      }
+
+      // 鐖嗗彂鎶€鑳借Е鍙戝墠妫€鏌ュ苟娑堣€?
+      public bool TryConsume(float cost)
+      {
+          if (_curEnergy < cost) return false;
+          _curEnergy -= cost;
+          EventCenter.Instance.SetEventTrigger(EventNames.EnergyChanged, _curEnergy);
+          return true;
+      }
+
+      public void SetEfficiency(float value) => _efficiency = value;
+  }
+
+  ---
+  鍏€丳layerControlModule锛堝崗璋冨櫒锛?
+
+  public class PlayerControlModule : MonoBehaviour
+  {
+      public static PlayerControlModule Instance { get; private set; }
+
+      public PlayerInputManager  InputManager      { get; private set; }
+      public TeamManager         TeamManager       { get; private set; }
+      public PlayerCameraController CameraController { get; private set; }
+      public EnergySystem        EnergySystem      { get; private set; }
+
+      private void Awake()
+      {
+          Instance = this;
+          InputManager      = GetComponent<PlayerInputManager>();
+          TeamManager       = GetComponent<TeamManager>();
+          CameraController  = GetComponent<PlayerCameraController>();
+          EnergySystem      = GetComponent<EnergySystem>();
+      }
+
+      private async void Start()
+      {
+          await TeamManager.LoadTeamAsync();
+          CameraController.SwitchToCharacter(TeamManager.CurrentDriver);
+          EventCenter.Instance.AddEventListener<int>(EventNames.CharacterSwitched, OnCharacterSwitched);
+          EventCenter.Instance.AddEventListener<GameObject>(EventNames.UnitDeath, OnUnitDeath);
+      }
+
+      private void Update()
+      {
+          var data = InputManager.Data;
+
+          // 瑙掕壊鍒囨崲
+          if (data.SwitchIndex >= 0)
+              TeamManager.TrySwitchTo(data.SwitchIndex);
+          else if (data.ScrollDelta != 0)
+              TeamManager.TrySwitchTo((TeamManager.CurrentIndex - data.ScrollDelta + 4) % 4);
+      }
+
+      private void OnCharacterSwitched(int index)
+          => CameraController.SwitchToCharacter(TeamManager.Drivers[index]);
+
+      private void OnUnitDeath(GameObject unit)
+      {
+          if (unit == TeamManager.CurrentDriver.gameObject)
+              TeamManager.OnCurrentCharacterDeath();
+      }
+
+      // 瀵瑰蹇嵎璁块棶
+      public CharacterAnimatorDriver CurrentDriver => TeamManager.CurrentDriver;
+      public PlayerInputData InputData => InputManager.Data;
+
+      private void OnDestroy()
+      {
+          EventCenter.Instance.RemoveEventListener<int>(EventNames.CharacterSwitched, OnCharacterSwitched);
+          EventCenter.Instance.RemoveEventListener<GameObject>(EventNames.UnitDeath, OnUnitDeath);
+      }
+  }
+
+  ---
+  鍚勬ā鍧楅€氫俊娴?
+
+  鐜╁鎸?2 閿?
+    鈹斺攢鈫?InputManager.Data.SwitchIndex = 1
+          鈹斺攢鈫?PlayerControlModule.Update()
+                鈹斺攢鈫?TeamManager.TrySwitchTo(1)
+                      鈹溾攢鈫?绂佺敤鏃ц鑹茶緭鍏?
+                      鈹溾攢鈫?鍚敤鏂拌鑹茶緭鍏?
+                      鈹斺攢鈫?EventCenter 骞挎挱 CharacterSwitched(1)
+                            鈹斺攢鈫?CameraController.SwitchToCharacter(Drivers[1])
+
+  鐜╁灏勫嚮
+    鈹斺攢鈫?InputData.IsShooting = true
+          鈹斺攢鈫?CharacterAnimatorDriver 鐨?HSM 鐘舵€佽鍙?鈫?AttackFire()
+                鈹斺攢鈫?EnergySystem.GainEnergy(hitDamage * 0.1f)
+
+  鐜╁鎸?E锛堢垎鍙戯級
+    鈹斺攢鈫?InputData.BurstPressed = true
+          鈹斺攢鈫?HSM 鐘舵€佹鏌?EnergySystem.TryConsume(cost)
+                鈹溾攢鈫?鎴愬姛 鈫?CharacterSkillBehavior.OnBurst(ctx)
+                鈹斺攢鈫?澶辫触 鈫?鏃犲搷搴旓紙鎴?UI 闂儊鎻愮ず锛?
+
+  ---
+  鏁翠釜绯荤粺鐨勫叧閿璁℃槸 PlayerControlModule 鏄敮涓€鐨勫澶栧叆鍙ｏ紝鍏朵粬绯荤粺锛堟妧鑳姐€乁I銆佹晫浜?AI锛夐渶瑕佺帺瀹舵暟鎹椂鍙闂?PlayerControlModule.Instance.xxx锛屼笉鐩存帴鎸佹湁瀛愭ā鍧楀紩鐢ㄣ€

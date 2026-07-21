@@ -1,0 +1,1961 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4729dab1b065fe941aa6d4f9dd582add, type: 3}
+  m_Name: AttckLoop
+  m_EditorClassIdentifier: 
+  animationSegments:
+  - authoringTrackName: Animation Track
+    clip: {fileID: 5095221855324012475, guid: ce76cfa7032cf974982d00bd800a3334, type: 3}
+    crossFadeDuration: 0
+    layer: 0
+    startTime: 0
+  - authoringTrackName: Animation Track
+    clip: {fileID: 6006265966701824731, guid: ce76cfa7032cf974982d00bd800a3334, type: 3}
+    crossFadeDuration: 0
+    layer: 0
+    startTime: 1.3333334
+  totalDuration: 3.4333334
+  wrapMode: 1
+  speedMultiplier: 1
+  events:
+  - authoringTrackName: Audio Track
+    time: 1.3333334
+    type: 1
+    referenceBone: "\u88C5\u7532"
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 0}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 8300000, guid: ac6daf41c69037646b646c442e6ff86f, type: 3}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Control Track
+    time: 1.3333334
+    type: 0
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+    positionOffset: {x: -0.507, y: 0, z: 0.067}
+    rotationOffset: {x: 0, y: 270, z: 0}
+    scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+    prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 0.15
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Behavior Timeline Event Track
+    time: 1.3333334
+    type: 2
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Control Track
+    time: 1.4833333
+    type: 0
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+    positionOffset: {x: -0.507, y: 0, z: 0.067}
+    rotationOffset: {x: 0, y: 270, z: 0}
+    scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+    prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 0.15
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Behavior Timeline Event Track
+    time: 1.4833333
+    type: 2
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (1)"
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Control Track
+    time: 1.6333333
+    type: 0
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+    positionOffset: {x: -0.507, y: 0, z: 0.067}
+    rotationOffset: {x: 0, y: 270, z: 0}
+    scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+    prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 0.15
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Behavior Timeline Event Track
+    time: 1.6333333
+    type: 2
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (2)"
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Control Track
+    time: 1.8666667
+    type: 0
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+    positionOffset: {x: -0.507, y: 0, z: 0.067}
+    rotationOffset: {x: 0, y: 270, z: 0}
+    scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+    prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 0.15
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Behavior Timeline Event Track
+    time: 1.8666668
+    type: 2
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Control Track
+    time: 2.0166667
+    type: 0
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+    positionOffset: {x: -0.507, y: 0, z: 0.067}
+    rotationOffset: {x: 0, y: 270, z: 0}
+    scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+    prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 0.15
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Behavior Timeline Event Track
+    time: 2.016667
+    type: 2
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (1)"
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Audio Track
+    time: 2.1423583
+    type: 1
+    referenceBone: "\u88C5\u7532"
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 0}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 8300000, guid: ac6daf41c69037646b646c442e6ff86f, type: 3}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Control Track
+    time: 2.1666667
+    type: 0
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+    positionOffset: {x: -0.507, y: 0, z: 0.067}
+    rotationOffset: {x: 0, y: 270, z: 0}
+    scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+    prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 0.15
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Behavior Timeline Event Track
+    time: 2.1666667
+    type: 2
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (2)"
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Control Track
+    time: 2.4
+    type: 0
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+    positionOffset: {x: -0.507, y: 0, z: 0.067}
+    rotationOffset: {x: 0, y: 270, z: 0}
+    scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+    prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 0.15
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Behavior Timeline Event Track
+    time: 2.4
+    type: 2
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Control Track
+    time: 2.55
+    type: 0
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+    positionOffset: {x: -0.507, y: 0, z: 0.067}
+    rotationOffset: {x: 0, y: 270, z: 0}
+    scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+    prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 0.15
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Behavior Timeline Event Track
+    time: 2.5500002
+    type: 2
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (1)"
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Control Track
+    time: 2.7
+    type: 0
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+    positionOffset: {x: -0.507, y: 0, z: 0.067}
+    rotationOffset: {x: 0, y: 270, z: 0}
+    scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+    prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 0.15
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  - authoringTrackName: Behavior Timeline Event Track
+    time: 2.7
+    type: 2
+    referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+      R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (2)"
+    positionOffset: {x: 0, y: 0, z: 0}
+    rotationOffset: {x: 0, y: 0, z: 0}
+    scaleOffset: {x: 1, y: 1, z: 1}
+    prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+      type: 3}
+    targetObjectPath: 
+    activeState: 1
+    autoRecycleTime: 1
+    audioRef: {fileID: 0}
+    audioLoop: 0
+    audioVolume: 1
+    buffRef: {fileID: 0}
+    numericKey: 
+    gameplayEffectRef: {fileID: 0}
+    damageMultiplier: 1
+    cameraShakeAmplitude: 0
+    cameraShakeFrequency: 0
+    cameraShakeDuration: 0
+  hitboxes: []
+  priority: 2
+  comboInputWindowStart: 0.6
+  comboInputWindowEnd: 0.95
+  transitions: []
+  authoringTracks:
+  - trackName: Behavior Meta
+    trackKind: 0
+    sortIndex: 0
+    clips:
+    - displayName: Behavior Meta
+      startTime: 0
+      duration: 0.1
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: 
+        time: 0
+        type: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 0}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+  - trackName: Animation Track
+    trackKind: 1
+    sortIndex: 1
+    clips:
+    - displayName: EnemyTSS_PowerLoader_PMC_Normal_Attack_Delay
+      startTime: 0
+      duration: 1.3333334
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: Animation Track
+        clip: {fileID: 5095221855324012475, guid: ce76cfa7032cf974982d00bd800a3334,
+          type: 3}
+        crossFadeDuration: 0
+        layer: 0
+        startTime: 0
+      behaviorEvent:
+        authoringTrackName: 
+        time: 0
+        type: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 0}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: EnemyTSS_PowerLoader_PMC_Normal_Attack_Ing
+      startTime: 1.3333334
+      duration: 2.1
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: Animation Track
+        clip: {fileID: 6006265966701824731, guid: ce76cfa7032cf974982d00bd800a3334,
+          type: 3}
+        crossFadeDuration: 0
+        layer: 0
+        startTime: 1.3333334
+      behaviorEvent:
+        authoringTrackName: 
+        time: 0
+        type: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 0}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+  - trackName: Audio Track
+    trackKind: 2
+    sortIndex: 2
+    clips:
+    - displayName: SFX_Common_HMG_01
+      startTime: 1.3333334
+      duration: 0.80902493
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Audio Track
+        time: 1.3333334
+        type: 1
+        referenceBone: "\u88C5\u7532"
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 0}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 8300000, guid: ac6daf41c69037646b646c442e6ff86f, type: 3}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: SFX_Common_HMG_01
+      startTime: 2.1423583
+      duration: 0.80902493
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Audio Track
+        time: 2.1423583
+        type: 1
+        referenceBone: "\u88C5\u7532"
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 0}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 8300000, guid: ac6daf41c69037646b646c442e6ff86f, type: 3}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+  - trackName: Control Track
+    trackKind: 3
+    sortIndex: 3
+    clips:
+    - displayName: Generic Muzzle
+      startTime: 1.3333334
+      duration: 0.15
+      boundObjectPath: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+        R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Control Track
+        time: 1.3333334
+        type: 0
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+        positionOffset: {x: -0.507, y: 0, z: 0.067}
+        rotationOffset: {x: 0, y: 270, z: 0}
+        scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+        prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 0.15
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: Generic Muzzle
+      startTime: 1.4833333
+      duration: 0.15
+      boundObjectPath: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+        R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Control Track
+        time: 1.4833333
+        type: 0
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+        positionOffset: {x: -0.507, y: 0, z: 0.067}
+        rotationOffset: {x: 0, y: 270, z: 0}
+        scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+        prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 0.15
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: Generic Muzzle
+      startTime: 1.6333333
+      duration: 0.15
+      boundObjectPath: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+        R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Control Track
+        time: 1.6333333
+        type: 0
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+        positionOffset: {x: -0.507, y: 0, z: 0.067}
+        rotationOffset: {x: 0, y: 270, z: 0}
+        scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+        prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 0.15
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: Generic Muzzle
+      startTime: 1.8666667
+      duration: 0.15
+      boundObjectPath: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+        R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Control Track
+        time: 1.8666667
+        type: 0
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+        positionOffset: {x: -0.507, y: 0, z: 0.067}
+        rotationOffset: {x: 0, y: 270, z: 0}
+        scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+        prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 0.15
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: Generic Muzzle
+      startTime: 2.0166667
+      duration: 0.15
+      boundObjectPath: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+        R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Control Track
+        time: 2.0166667
+        type: 0
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+        positionOffset: {x: -0.507, y: 0, z: 0.067}
+        rotationOffset: {x: 0, y: 270, z: 0}
+        scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+        prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 0.15
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: Generic Muzzle
+      startTime: 2.1666667
+      duration: 0.15
+      boundObjectPath: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+        R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Control Track
+        time: 2.1666667
+        type: 0
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+        positionOffset: {x: -0.507, y: 0, z: 0.067}
+        rotationOffset: {x: 0, y: 270, z: 0}
+        scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+        prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 0.15
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: Generic Muzzle
+      startTime: 2.4
+      duration: 0.15
+      boundObjectPath: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+        R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Control Track
+        time: 2.4
+        type: 0
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+        positionOffset: {x: -0.507, y: 0, z: 0.067}
+        rotationOffset: {x: 0, y: 270, z: 0}
+        scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+        prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 0.15
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: Generic Muzzle
+      startTime: 2.55
+      duration: 0.15
+      boundObjectPath: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+        R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Control Track
+        time: 2.55
+        type: 0
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+        positionOffset: {x: -0.507, y: 0, z: 0.067}
+        rotationOffset: {x: 0, y: 270, z: 0}
+        scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+        prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 0.15
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: Generic Muzzle
+      startTime: 2.7
+      duration: 0.15
+      boundObjectPath: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+        R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Control Track
+        time: 2.7
+        type: 0
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand"
+        positionOffset: {x: -0.507, y: 0, z: 0.067}
+        rotationOffset: {x: 0, y: 270, z: 0}
+        scaleOffset: {x: 0.08, y: 0.08, z: 0.08}
+        prefabRef: {fileID: 1139489538214149376, guid: 04e5015c635f9e84ba21b0582ec08edb,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 0.15
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+  - trackName: Behavior Timeline Event Track
+    trackKind: 5
+    sortIndex: 4
+    clips:
+    - displayName: BehaviorTimelineEventClipAsset
+      startTime: 1.3333334
+      duration: 0.15
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Behavior Timeline Event Track
+        time: 1.3333334
+        type: 2
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: BehaviorTimelineEventClipAsset
+      startTime: 1.4833333
+      duration: 0.15
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Behavior Timeline Event Track
+        time: 1.4833333
+        type: 2
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (1)"
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: BehaviorTimelineEventClipAsset
+      startTime: 1.6333333
+      duration: 0.15
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Behavior Timeline Event Track
+        time: 1.6333333
+        type: 2
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (2)"
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: BehaviorTimelineEventClipAsset
+      startTime: 1.8666668
+      duration: 0.15
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Behavior Timeline Event Track
+        time: 1.8666668
+        type: 2
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: BehaviorTimelineEventClipAsset
+      startTime: 2.016667
+      duration: 0.15
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Behavior Timeline Event Track
+        time: 2.016667
+        type: 2
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (1)"
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: BehaviorTimelineEventClipAsset
+      startTime: 2.1666667
+      duration: 0.15
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Behavior Timeline Event Track
+        time: 2.1666667
+        type: 2
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (2)"
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: BehaviorTimelineEventClipAsset
+      startTime: 2.4
+      duration: 0.15
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Behavior Timeline Event Track
+        time: 2.4
+        type: 2
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle"
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: BehaviorTimelineEventClipAsset
+      startTime: 2.5500002
+      duration: 0.15
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Behavior Timeline Event Track
+        time: 2.5500002
+        type: 2
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (1)"
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25
+    - displayName: BehaviorTimelineEventClipAsset
+      startTime: 2.7
+      duration: 0.15
+      boundObjectPath: 
+      meta:
+        wrapMode: 1
+        speedMultiplier: 1
+        priority: 2
+        comboInputWindowStart: 0.6
+        comboInputWindowEnd: 0.95
+      animationSegment:
+        authoringTrackName: 
+        clip: {fileID: 0}
+        crossFadeDuration: 0.25
+        layer: 0
+        startTime: -1
+      behaviorEvent:
+        authoringTrackName: Behavior Timeline Event Track
+        time: 2.7
+        type: 2
+        referenceBone: "\u88C5\u7532/bone_root/Bip001/IK_Bone/Bip_001 R Clavicle/Bip_001
+          R UpperArm/Bip_001 R Forearm/Bip_001 R Hand/Generic Muzzle (2)"
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        prefabRef: {fileID: 9138411580470297862, guid: 8ead8101d64376445abb31ea30fda4e7,
+          type: 3}
+        targetObjectPath: 
+        activeState: 1
+        autoRecycleTime: 1
+        audioRef: {fileID: 0}
+        audioLoop: 0
+        audioVolume: 1
+        buffRef: {fileID: 0}
+        numericKey: 
+        gameplayEffectRef: {fileID: 0}
+        damageMultiplier: 1
+        cameraShakeAmplitude: 0
+        cameraShakeFrequency: 0
+        cameraShakeDuration: 0
+      hitboxDef:
+        authoringTrackName: 
+        name: 
+        startTime: 0
+        duration: 0.1
+        shape: 0
+        hitGroupId: 0
+        referenceBone: 
+        positionOffset: {x: 0, y: 0, z: 0}
+        rotationOffset: {x: 0, y: 0, z: 0}
+        scaleOffset: {x: 1, y: 1, z: 1}
+        size: {x: 1, y: 1, z: 1}
+        numericKey: 
+        damageMultiplier: 1
+        hitStunDuration: 0
+        knockbackForce: {x: 0, y: 0, z: 0}
+        onHitBuff: {fileID: 0}
+      transitionDefinition:
+        authoringTrackName: 
+        targetBehaviorKey: 
+        startTime: 0
+        endTime: 1
+        crossFadeDuration: 0.25

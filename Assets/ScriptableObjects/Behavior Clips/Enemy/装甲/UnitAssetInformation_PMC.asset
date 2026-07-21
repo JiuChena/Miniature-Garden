@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff7c49e3a16b2df48a78afdebe0d7382, type: 3}
+  m_Name: UnitAssetInformation_PMC
+  m_EditorClassIdentifier: 
+  characterId: 10002
+  unitAlignment: 1
+  healthFormula:
+    baseValueAtLevel1: 100
+    growthPerLevel: 0
+  attackFormula:
+    baseValueAtLevel1: 10
+    growthPerLevel: 0
+  defenseFormula:
+    baseValueAtLevel1: 2
+    growthPerLevel: 0
+  baseCritRate: 0.5
+  baseCritDamage: 1
+  baseDamageBonus: 0
+  basePenetration: 0
+  maxEnergy: 100
+  moveSpeed: 1.5
+  jumpPower: 0
+  defaultBehaviorTransitionDuration: 0.25
+  burstCost: 40
+  talentCooldown: 8
+  burstCooldown: 5
+  supportsAttack: 1
+  supportsTalent: 1
+  supportsBurst: 1
+  supportsReload: 1
+  supportsCrouch: 0
+  supportsJump: 0
+  hitboxTargetLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  numericProfile: {fileID: 11400000, guid: c59f94a7876f10644932cfa063588d7d, type: 2}
+  conditionSourceAsset: {fileID: 0}
+  transitionPolicyAsset: {fileID: 0}
+  attackResolverAsset: {fileID: 0}
+  behaviors:
+  - key: Idle
+    clips:
+    - {fileID: 11400000, guid: 982b48bda007caa4a8e4383fec041108, type: 2}
+  - key: Move
+    clips:
+    - {fileID: 11400000, guid: 1b5c6d42e35698e49b2f8377ad812de1, type: 2}
+  - key: AttackStart
+    clips:
+    - {fileID: 11400000, guid: 4511dc810a46869459b35c5c4b4dcbb9, type: 2}
+  - key: AttackLoop
+    clips:
+    - {fileID: 11400000, guid: db2b0187b8d41a94f8fb1863ac2b3784, type: 2}
+  - key: AttackEnd
+    clips:
+    - {fileID: 11400000, guid: 293e613dcae434e4385d2f1b20a91740, type: 2}
+  - key: Reload
+    clips:
+    - {fileID: 11400000, guid: a57667ffc67aca24da61e67d590d687f, type: 2}
+  - key: Talent
+    clips:
+    - {fileID: 11400000, guid: bf81db3f1c9ea3a4295d7b0a0076715e, type: 2}
+  - key: Burst
+    clips:
+    - {fileID: 11400000, guid: fc8ececa27c14d7458665280d200f9b2, type: 2}
+  - key: Death
+    clips:
+    - {fileID: 11400000, guid: 7f6e5f092a051f045bb7262cb78c0139, type: 2}
+  - key: Load
+    clips:
+    - {fileID: 11400000, guid: 8e16bc776b8458646b71ab72e8a40ab4, type: 2}

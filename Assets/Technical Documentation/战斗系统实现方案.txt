@@ -1,0 +1,177 @@
+● 战斗系统由 5 个子系统协作完成，先看整体数据流，再逐个拆解。
+
+  ---
+  整体数据流
+
+  玩家输入
+    └─→ PlayerInputData（数据快照）
+          └─→ CharacterAnimatorDriver（HSM 读取）
+                ├─→ AttackFire() ──→ BulletDriverModule（弹道）
+                │                         └─→ IDamageable.PushDamage()
+                │                               └─→ GeneralDataHandler.CalculateDamage()
+                │                                     └─→ StatusData.HP 减少
+                │
+                ├─→ TalentSkill() ──→ CharacterSkillBehavior.OnTalent(ctx)
+                │                         └─→ SkillEffectProcessor（范围伤害/治疗/Buff）
+                │
+                └─→ BurstSkill() ──→ EnergySystem.TryConsume()
+                                          └─→ CharacterSkillBehavior.OnBurst(ctx)
+
+  ---
+  一、数据层：StatusData
+
+  每个战斗单位（玩家/敌人）都挂一个，保存运行时实时属性：
+
+  public class StatusData : MonoBehaviour
+  {
+      public float maxHP, curHP;
+      public float attack, defense, speed;
+      public float critRate, critMultiplier;
+
+      public bool IsDead => curHP <= 0;
+
+      public void TakeDamage(float damage)
+      {
+          curHP = Mathf.Max(0, curHP - damage);
+          if (IsDead) EventCenter.Instance.SetEventTrigger(EventNames.UnitDeath, gameObject);
+      }
+
+      public void Heal(float amount) => curHP = Mathf.Min(maxHP, curHP + amount);
+
+      // 初始化时从 SO 配置 + Buff 加成计算全部属性
+      public void ActualDataUpdate(CESODataBase baseData, float buffAttackBonus, ...)
+      { ... }
+  }
+
+  ---
+  二、伤害计算：GeneralDataHandler（静态工具类）
+
+  public static class GeneralDataHandler
+  {
+      public static float CalculateDamage(StatusData attacker,
+                                           StatusData defender,
+                                           float multiplier = 1f)
+      {
+          float raw = attacker.attack * multiplier;
+          // 防御公式：减伤 = defense / (defense + 100)
+          float reduction = defender.defense / (defender.defense + 100f);
+          float damage = raw * (1f - reduction);
+
+          // 暴击判定
+          if (Random.value < attacker.critRate)
+              damage *= attacker.critMultiplier;
+
+          return damage;
+      }
+  }
+
+  ---
+  三、弹道系统：BulletDriverModule
+
+  子弹从对象池取出，飞行时逐帧 Raycast 或 MovePosition，命中后：
+
+  private void OnHit(RaycastHit hit)
+  {
+      IDamageable target = hit.collider.GetComponent<IDamageable>();
+      if (target != null)
+      {
+          float damage = GeneralDataHandler.CalculateDamage(_ownerData, target.DataPanel, _multiplier);
+          target.PushDamage(damage);
+          // 通知 SkillBehavior 处理特殊击中效果（如冰冻、点燃）
+          _skillBehavior?.OnBulletHitEnemy(_context, target.DataPanel);
+      }
+      ObjectsPool.Instance.ReturnObjectToPool(gameObject);
+  }
+
+  子弹不关心攻击者是谁，只关心 IDamageable 接口 —— 玩家子弹能打敌人，范围技能也走同一套接口。
+
+  ---
+  四、技能执行：CharacterSkillBehavior + SkillContext
+
+  SkillContext 是技能执行时的"快照"，一次性传入所有技能需要的信息：
+
+  public class SkillContext
+  {
+      public Transform Owner;              // 施放者位置/方向
+      public StatusData OwnerData;
+      public CharacterSkillBehavior SkillData;
+      public int SkillLevel;
+      public List<GameObject> Targets;     // 范围技能命中列表（由 SkillEffectProcessor 填充）
+  }
+
+  SkillEffectProcessor 处理通用效果，让各角色行为类专注独特逻辑：
+
+  // 以 Klaus 的爆发技能为例
+  public class KlausSkillBehavior : CharacterSkillBehavior
+  {
+      public BuffDataSO frostDebuff;
+
+      public override void OnBurst(SkillContext ctx)
+      {
+          // 1. 范围伤害（通用）
+          SkillEffectProcessor.ApplyDamageInArea(ctx, burstArea,
+              ctx.OwnerData.attack * attackMultiplier);
+
+          // 2. 附加减速 Buff（Klaus 独有）
+          foreach (var target in ctx.Targets)
+              BuffSystem.Instance.ApplyBuff(target, frostDebuff, ctx.Owner.gameObject);
+
+          // 3. 特效
+          ObjectsPool.Instance.GetObjectFromPool(burstEffect, null, obj =>
+          {
+              obj.transform.position = ctx.Owner.position;
+              ObjectsPool.Instance.ReturnObjectToPool(obj, frostAuraDuration);
+          });
+      }
+  }
+
+  ---
+  五、Buff 系统：BuffSystem
+
+  统一管理所有加/减益效果，StatusData 属性更新时从 BuffSystem 查询加成：
+
+  public class BuffSystem
+  {
+      // target → buff列表，支持叠层和限时
+      private Dictionary<GameObject, List<BuffInstance>> _buffMap = new();
+
+      public void ApplyBuff(GameObject target, BuffDataSO data, GameObject caster)
+      {
+          // 叠层检查、添加 BuffInstance、启动倒计时
+          // 广播 EventNames.BuffApplied 让 BonusPanel 刷新 UI
+      }
+
+      public float GetStatModifier(GameObject target, BonusType stat)
+      {
+          // 累加该单位身上所有影响 stat 的 Buff 数值
+          return totalBonus;
+      }
+  }
+
+  BonusPanel 只负责 UI，不自己管理 Buff 列表，订阅事件后从 BuffSystem 查询显示值。
+
+  ---
+  六、死亡流
+
+  StatusData.TakeDamage()
+    └─→ curHP <= 0 → EventCenter 广播 EventNames.UnitDeath(gameObject)
+          ├─→ HSM 切换到 DeathState（播死亡动画、禁用碰撞体）
+          ├─→ 玩家：TeamManager.OnCurrentCharacterDeath()（切换角色）
+          └─→ 敌人：EnemyAnimatorDriver 处理掉落/消失
+
+  ---
+  模块依赖关系
+
+  BulletDriverModule
+    ↓ 依赖
+  IDamageable ← PlayerDamageReceiver / EnemyDamageReceiver
+    ↓ 依赖
+  GeneralDataHandler
+    ↓ 依赖
+  StatusData ← BuffSystem（属性修正）
+
+  CharacterSkillBehavior
+    ↓ 依赖
+  SkillEffectProcessor → IDamageable / BuffSystem
+
+  ---

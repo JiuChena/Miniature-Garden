@@ -1,0 +1,472 @@
+● 整体结构
+
+  Canvas 层级
+  ├── WorldSpaceCanvas      ← 伤害数字、敌人血条（跟随世界位置）
+  ├── HUDCanvas             ← 战斗 HUD（始终显示）
+  │   └── HUDPanel
+  └── PanelCanvas           ← 所有弹出面板（由 PanelManager 管理）
+      ├── BagPanel
+      ├── StorePanel
+      ├── CharacterPanel
+      ├── InteractionPanel
+      └── ...
+
+  PanelManager（Addressables 异步加载 + 面板缓存）
+  PanelBase（所有面板基类：LoadInit/ComponentInit/OnUpdate）
+
+  核心原则：所有面板只订阅 EventCenter 事件刷新，不在 OnUpdate 轮询 DataCenter。
+
+  ---
+  一、PanelManager（框架层，已有设计）
+
+  补充面板栈支持 ESC 返回：
+
+  public class PanelManager : MonoBehaviour
+  {
+      // ... 已有缓存逻辑 ...
+      private Stack<string> _panelStack = new();
+
+      public void PanelDisplay<T>(string panelName, UnityAction<T> callback = null) where T : PanelBase
+      {
+          // 已有 Addressables 加载逻辑...
+          _panelStack.Push(panelName);
+      }
+
+      public void CloseTopPanel()
+      {
+          if (_panelStack.Count == 0) return;
+          string top = _panelStack.Pop();
+          HidePanel(top);
+      }
+
+      // 在 Update 中检测 ESC
+      private void Update()
+      {
+          if (Input.GetKeyDown(KeyCode.Escape))
+              CloseTopPanel();
+      }
+  }
+
+  ---
+  二、HUDPanel（战斗 HUD）
+
+  战斗中始终可见，订阅 5 类事件驱动刷新：
+
+  public class HUDPanel : PanelBase
+  {
+      // 四角色小头像条
+      private CharacterPortraitUI[] _portraits = new CharacterPortraitUI[4];
+      // 当前角色大血条
+      private Slider _hpBar;
+      private TMP_Text _hpText;
+      // 能量条
+      private Slider _energyBar;
+      // 技能 CD 图标
+      private SkillCooldownUI _talentUI;
+      private SkillCooldownUI _burstUI;
+
+      protected override void LoadInit()
+      {
+          EventCenter.Instance.AddEventListener<StatusData>(EventNames.HPChanged, OnHPChanged);
+          EventCenter.Instance.AddEventListener<float>(EventNames.EnergyChanged, OnEnergyChanged);
+          EventCenter.Instance.AddEventListener<int>(EventNames.CharacterSwitched, OnCharacterSwitched);
+          EventCenter.Instance.AddEventListener<GameObject>(EventNames.UnitDeath, OnUnitDeath);
+          EventCenter.Instance.AddEventListener<float>(EventNames.TalentCDChanged, OnTalentCD);
+          EventCenter.Instance.AddEventListener<float>(EventNames.BurstCDChanged, OnBurstCD);
+      }
+
+      protected override void ComponentInit()
+      {
+          _hpBar     = transform.Find("HPBar").GetComponent<Slider>();
+          _energyBar = transform.Find("EnergyBar").GetComponent<Slider>();
+          _talentUI  = transform.Find("TalentSkill").GetComponent<SkillCooldownUI>();
+          _burstUI   = transform.Find("BurstSkill").GetComponent<SkillCooldownUI>();
+
+          for (int i = 0; i < 4; i++)
+              _portraits[i] = transform.Find($"Portrait_{i}").GetComponent<CharacterPortraitUI>();
+
+          RefreshAll();
+      }
+
+      private void RefreshAll()
+      {
+          var team = PlayerControlModule.Instance.TeamManager;
+          for (int i = 0; i < 4; i++)
+              _portraits[i].Refresh(team.Drivers[i], i == team.CurrentIndex);
+
+          RefreshHPBar(team.CurrentDriver.ActualData);
+          _energyBar.value = PlayerControlModule.Instance.EnergySystem.CurrentEnergy
+                           / EnergySystem.MaxEnergy;
+      }
+
+      private void OnHPChanged(StatusData data)
+      {
+          // 只刷新当前角色大血条
+          if (data.gameObject == PlayerControlModule.Instance.CurrentDriver.gameObject)
+              RefreshHPBar(data);
+
+          // 同步小头像血条
+          for (int i = 0; i < 4; i++)
+              if (PlayerControlModule.Instance.TeamManager.Drivers[i]?.ActualData == data)
+                  _portraits[i].RefreshHP(data);
+      }
+
+      private void RefreshHPBar(StatusData data)
+      {
+          _hpBar.value = data.curHP / data.maxHP;
+          _hpText.text = $"{Mathf.CeilToInt(data.curHP)} / {Mathf.CeilToInt(data.maxHP)}";
+      }
+
+      private void OnEnergyChanged(float energy)
+          => _energyBar.value = energy / EnergySystem.MaxEnergy;
+
+      private void OnCharacterSwitched(int index)
+      {
+          for (int i = 0; i < 4; i++)
+              _portraits[i].SetActive(i == index);
+          RefreshHPBar(PlayerControlModule.Instance.TeamManager.Drivers[index].ActualData);
+      }
+
+      private void OnUnitDeath(GameObject unit)
+      {
+          var team = PlayerControlModule.Instance.TeamManager;
+          for (int i = 0; i < 4; i++)
+              if (team.Drivers[i]?.gameObject == unit)
+                  _portraits[i].SetDead();
+      }
+
+      private void OnTalentCD(float ratio) => _talentUI.SetCooldown(ratio);
+      private void OnBurstCD(float ratio)  => _burstUI.SetCooldown(ratio);
+
+      private void OnDestroy()
+      {
+          EventCenter.Instance.RemoveEventListener<StatusData>(EventNames.HPChanged, OnHPChanged);
+          EventCenter.Instance.RemoveEventListener<float>(EventNames.EnergyChanged, OnEnergyChanged);
+          EventCenter.Instance.RemoveEventListener<int>(EventNames.CharacterSwitched, OnCharacterSwitched);
+          EventCenter.Instance.RemoveEventListener<GameObject>(EventNames.UnitDeath, OnUnitDeath);
+          EventCenter.Instance.RemoveEventListener<float>(EventNames.TalentCDChanged, OnTalentCD);
+          EventCenter.Instance.RemoveEventListener<float>(EventNames.BurstCDChanged, OnBurstCD);
+      }
+  }
+
+  // 技能 CD 覆盖效果（圆形遮罩倒计时）
+  public class SkillCooldownUI : MonoBehaviour
+  {
+      private Image _cdMask;      // FillType = Radial360
+      private TMP_Text _cdText;
+      private bool _onCooldown;
+
+      public void SetCooldown(float ratio)    // ratio: 1=冷却中, 0=可用
+      {
+          _cdMask.fillAmount = ratio;
+          _onCooldown = ratio > 0;
+          _cdText.gameObject.SetActive(_onCooldown);
+      }
+  }
+
+  ---
+  三、BagPanel
+
+  public class BagPanel : PanelBase
+  {
+      private Transform _gridRoot;
+      private ItemSlotUI _slotPrefab;
+      private ItemDetailUI _detailPanel;
+      private TMP_Text _currencyText;
+      private List<ItemSlotUI> _slots = new();
+
+      protected override void LoadInit()
+          => EventCenter.Instance.AddEventListener(EventNames.BagUpdated, Refresh);
+
+      protected override void ComponentInit()
+      {
+          _gridRoot     = transform.Find("Grid");
+          _detailPanel  = transform.Find("Detail").GetComponent<ItemDetailUI>();
+          _currencyText = transform.Find("Currency").GetComponent<TMP_Text>();
+          Refresh();
+      }
+
+      private void Refresh()
+      {
+          ClearSlots();
+          var bag = DataCenter.Instance.BagData;
+
+          _currencyText.text = $"¥ {bag.currency}";
+
+          // 堆叠道具
+          foreach (var (assetID, count) in bag.stackableItems)
+          {
+              ItemInfo config = ItemConfigCache.Get(assetID);
+              if (config == null) continue;
+              var slot = CreateSlot();
+              slot.Setup(config, count, () => OnSlotSelected(config, null));
+          }
+
+          // 芯片（非堆叠，每个独立）
+          foreach (var (instanceID, assetID) in bag.chipInstances)
+          {
+              ChipItemInfo config = ItemConfigCache.Get(assetID) as ChipItemInfo;
+              if (config == null) continue;
+              var slot = CreateSlot();
+              slot.Setup(config, 1, () => OnSlotSelected(config, instanceID));
+          }
+      }
+
+      private void OnSlotSelected(ItemInfo item, string instanceID)
+      {
+          _detailPanel.Show(item, instanceID);
+      }
+
+      private ItemSlotUI CreateSlot()
+      {
+          var slot = ObjectsPool.Instance.GetObjectFromPool(_slotPrefab.gameObject, _gridRoot)
+                                .GetComponent<ItemSlotUI>();
+          _slots.Add(slot);
+          return slot;
+      }
+
+      private void ClearSlots()
+      {
+          foreach (var s in _slots)
+              ObjectsPool.Instance.ReturnObjectToPool(s.gameObject);
+          _slots.Clear();
+      }
+
+      private void OnDestroy()
+          => EventCenter.Instance.RemoveEventListener(EventNames.BagUpdated, Refresh);
+  }
+
+  // 道具详情 + 操作按钮
+  public class ItemDetailUI : MonoBehaviour
+  {
+      private Image _icon;
+      private TMP_Text _name, _desc, _price;
+      private Button _sellBtn, _equipBtn, _useBtn;
+
+      public void Show(ItemInfo item, string instanceID)
+      {
+          _icon.sprite   = item.icon;
+          _name.text     = item.displayName;
+          _desc.text     = item.description;
+          _price.text    = $"出售价：{item.sellPrice}";
+
+          _sellBtn.gameObject.SetActive(true);
+          _equipBtn.gameObject.SetActive(item is ChipItemInfo);
+          _useBtn.gameObject.SetActive(item.itemType == ItemType.Consumable);
+
+          _sellBtn.onClick.RemoveAllListeners();
+          _sellBtn.onClick.AddListener(() =>
+          {
+              if (instanceID != null) StoreSystem.Instance.TrySellChip(instanceID);
+              else StoreSystem.Instance.TrySell(item.assetID);
+          });
+      }
+  }
+
+  ---
+  四、StorePanel
+
+  public class StorePanel : PanelBase
+  {
+      [SerializeField] private StoreConfig _storeConfig;
+      private Transform _storeGrid;
+      private Transform _bagGrid;
+      private TMP_Text _currencyText;
+      private ItemDetailUI _detailPanel;
+
+      protected override void LoadInit()
+          => EventCenter.Instance.AddEventListener(EventNames.BagUpdated, RefreshCurrency);
+
+      protected override void ComponentInit()
+      {
+          _storeGrid    = transform.Find("StoreGrid");
+          _bagGrid      = transform.Find("BagGrid");
+          _currencyText = transform.Find("Currency").GetComponent<TMP_Text>();
+          BuildStoreList();
+          BuildBagList();
+          RefreshCurrency();
+      }
+
+      public void Initialize(string npcID)
+      {
+          // 若不同 NPC 有不同商店配置，通过 npcID 从 Addressables 加载对应 StoreConfig
+      }
+
+      private void BuildStoreList()
+      {
+          foreach (var entry in _storeConfig.entries)
+          {
+              var slot = CreateStoreSlot(_storeGrid);
+              int price = entry.priceOverride > 0 ? entry.priceOverride : entry.item.buyPrice;
+              slot.Setup(entry.item, entry.stock, price, () =>
+              {
+                  if (StoreSystem.Instance.TryBuy(entry.item))
+                      BuildBagList();
+              });
+          }
+      }
+
+      private void BuildBagList()
+      {
+          // 与 BagPanel 类似，显示玩家当前背包用于出售
+          // 复用 ItemSlotUI，点击时调用 TrySell
+      }
+
+      private void RefreshCurrency()
+          => _currencyText.text = $"¥ {DataCenter.Instance.BagData.currency}";
+
+      private void OnDestroy()
+          => EventCenter.Instance.RemoveEventListener(EventNames.BagUpdated, RefreshCurrency);
+  }
+
+  ---
+  五、CharacterPanel（属性 + 芯片 + 技能升级）
+
+  public class CharacterPanel : PanelBase
+  {
+      private TMP_Text _atkText, _defText, _hpText, _critText;
+      private ChipSlotUI[] _chipSlots = new ChipSlotUI[4];
+      private SkillEntryUI[] _skillEntries = new SkillEntryUI[3]; // 攻击/天赋/爆发
+      private int _charIndex;
+
+      protected override void LoadInit()
+      {
+          EventCenter.Instance.AddEventListener<int>(EventNames.CharacterStatsUpdated, OnStatsUpdated);
+          EventCenter.Instance.AddEventListener<int>(EventNames.SkillLevelUpdated, OnSkillUpdated);
+      }
+
+      protected override void ComponentInit()
+      {
+          // 找组件... 默认展示当前角色
+          _charIndex = PlayerControlModule.Instance.TeamManager.CurrentIndex;
+          Refresh();
+      }
+
+      private void Refresh()
+      {
+          var driver = PlayerControlModule.Instance.TeamManager.Drivers[_charIndex];
+          if (driver == null) return;
+
+          var data = driver.ActualData;
+          _atkText.text  = $"攻击：{data.attack:F0}";
+          _defText.text  = $"防御：{data.defense:F0}";
+          _hpText.text   = $"生命：{data.maxHP:F0}";
+          _critText.text = $"暴击：{data.critRate * 100:F1}%";
+
+          // 刷新芯片槽
+          for (int i = 0; i < 4; i++)
+          {
+              string instanceID = DataCenter.Instance.ChipsData.GetChip(_charIndex, i);
+              _chipSlots[i].Setup(_charIndex, i, instanceID, OnChipSlotClicked);
+          }
+
+          // 刷新技能等级
+          for (int i = 0; i < 3; i++)
+          {
+              int level = SkillLevelSystem.Instance.GetLevel(_charIndex, i);
+              _skillEntries[i].Setup(_charIndex, i, level, OnSkillUpgradeClicked);
+          }
+      }
+
+      private void OnChipSlotClicked(int charIndex, int slot)
+      {
+          // 打开芯片选择子面板（从背包中挑选芯片）
+          PanelManager.Instance.PanelDisplay<ChipSelectPanel>("ChipSelectPanel", (panel) =>
+              panel.Initialize(charIndex, slot));
+      }
+
+      private void OnSkillUpgradeClicked(int charIndex, int skillIndex)
+      {
+          PanelManager.Instance.PanelDisplay<SkillUpgradePanel>("SkillUpgradePanel", (panel) =>
+              panel.Initialize(charIndex, skillIndex));
+      }
+
+      private void OnStatsUpdated(int index) { if (index == _charIndex) Refresh(); }
+      private void OnSkillUpdated(int index) { if (index == _charIndex) Refresh(); }
+
+      private void OnDestroy()
+      {
+          EventCenter.Instance.RemoveEventListener<int>(EventNames.CharacterStatsUpdated, OnStatsUpdated);
+          EventCenter.Instance.RemoveEventListener<int>(EventNames.SkillLevelUpdated, OnSkillUpdated);
+      }
+  }
+
+  ---
+  六、伤害数字系统（世界空间浮动文字）
+
+  // 挂在 WorldSpaceCanvas 下，通过对象池复用
+  public class DamageNumber : MonoBehaviour
+  {
+      private TMP_Text _text;
+      private float _lifetime = 1f;
+      private float _elapsed;
+      private Vector3 _velocity;
+
+      public void Show(float damage, bool isCrit, Vector3 worldPos)
+      {
+          transform.position = worldPos + Vector3.up * 1.5f;
+          _text.text  = isCrit ? $"<color=#FFD700>{damage:F0}!</color>" : $"{damage:F0}";
+          _text.fontSize = isCrit ? 48 : 36;
+          _velocity = new Vector3(Random.Range(-0.5f, 0.5f), 2f, 0);
+          _elapsed  = 0;
+          gameObject.SetActive(true);
+      }
+
+      private void Update()
+      {
+          _elapsed += Time.deltaTime;
+          transform.position += _velocity * Time.deltaTime;
+          _velocity   *= 0.9f;
+
+          float alpha  = Mathf.Lerp(1f, 0f, _elapsed / _lifetime);
+          _text.alpha  = alpha;
+
+          // 始终朝向摄像机
+          transform.LookAt(Camera.main.transform);
+          transform.Rotate(0, 180f, 0);
+
+          if (_elapsed >= _lifetime)
+              ObjectsPool.Instance.ReturnObjectToPool(gameObject);
+      }
+  }
+
+  // 调用入口（在 GeneralDataHandler 或 DamageReceiver 中）
+  public static void ShowDamageNumber(float damage, bool isCrit, Vector3 pos)
+  {
+      ObjectsPool.Instance.GetObjectFromPool(damageNumberPrefab, worldCanvas, (obj) =>
+          obj.GetComponent<DamageNumber>().Show(damage, isCrit, pos));
+  }
+
+  ---
+  七、EventNames 补充（UI 相关）
+
+  public static class EventNames
+  {
+      // 已有...
+      public const string HPChanged           = nameof(HPChanged);       // StatusData
+      public const string EnergyChanged       = nameof(EnergyChanged);   // float
+      public const string TalentCDChanged     = nameof(TalentCDChanged); // float ratio
+      public const string BurstCDChanged      = nameof(BurstCDChanged);  // float ratio
+      public const string BagUpdated          = nameof(BagUpdated);
+      public const string StorePurchased      = nameof(StorePurchased);  // string assetID
+      public const string CharacterStatsUpdated = nameof(CharacterStatsUpdated); // int charIndex
+      public const string SkillLevelUpdated   = nameof(SkillLevelUpdated); // int charIndex
+      public const string InteractionChanged  = nameof(InteractionChanged); // IInteractable
+  }
+
+  ---
+  刷新时机总结
+
+  ┌──────────────────┬─────────────────────────────────────────────────────────────────────────────┬───────────────────────┐
+  │       面板       │                               触发刷新的事件                                │       刷新内容        │
+  ├──────────────────┼─────────────────────────────────────────────────────────────────────────────┼───────────────────────┤
+  │ HUDPanel         │ HPChanged / EnergyChanged / CharacterSwitched / UnitDeath / TalentCDChanged │ 血条/能量/头像高亮/CD │
+  ├──────────────────┼─────────────────────────────────────────────────────────────────────────────┼───────────────────────┤
+  │ BagPanel         │ BagUpdated                                                                  │ 全量重建格子列表      │
+  ├──────────────────┼─────────────────────────────────────────────────────────────────────────────┼───────────────────────┤
+  │ StorePanel       │ BagUpdated                                                                  │ 仅刷新货币显示        │
+  ├──────────────────┼─────────────────────────────────────────────────────────────────────────────┼───────────────────────┤
+  │ CharacterPanel   │ CharacterStatsUpdated / SkillLevelUpdated                                   │ 属性值/技能等级       │
+  ├──────────────────┼─────────────────────────────────────────────────────────────────────────────┼───────────────────────┤
+  │ InteractionPanel │ InteractionChanged                                                          │ 提示文字显示/隐藏     │
+  └──────────────────┴─────────────────────────────────────────────────────────────────────────────┴───────────────────────┘

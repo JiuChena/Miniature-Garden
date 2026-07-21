@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc1374cd28fd6ad4194811f94c137a3c, type: 3}
+  m_Name: BattleGlobalSettings
+  m_EditorClassIdentifier: 
+  projectileTargetPriorityWeight: 0.5
+  prioritizeCameraFacingTargets: 1
+  cameraFacingHalfAngle: 28
+  cameraCenterPreferenceWeight: 0.35
+  cameraCenterViewportRadius: 0.18
+  rotateHostUnitTowardProjectileTarget: 1
+  maxProjectileTargetCorrectionAngle: 7

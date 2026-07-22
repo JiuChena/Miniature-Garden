@@ -146,7 +146,7 @@ namespace CoreFramework
             if (optionPrefab == null || optionsRoot == null)
                 return;
 
-            ObjectsPool.Instance.GetObject(optionPrefab, optionsRoot, pooledObject =>
+            ObjectsPool.Instance.Get(optionPrefab, optionsRoot, pooledObject =>
             {
                 InteractionOption view = pooledObject.GetComponent<InteractionOption>();
                 if (view == null)
@@ -167,7 +167,7 @@ namespace CoreFramework
             for (int i = _optionViews.Count - 1; i >= 0; i--)
             {
                 if (_optionViews[i] != null)
-                    ObjectsPool.Instance.ReturnObject(_optionViews[i].gameObject);
+                    ObjectsPool.Instance.Put(_optionViews[i].gameObject);
             }
 
             _optionViews.Clear();

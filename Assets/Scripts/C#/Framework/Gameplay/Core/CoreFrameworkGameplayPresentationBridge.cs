@@ -17,7 +17,7 @@ public sealed class CoreFrameworkGameplayPresentationBridge : IGameplayPresentat
         if (target == null)
             return;
 
-        ObjectsPool.Instance.ReturnObject(target);
+        ObjectsPool.Instance.Put(target);
     }
 
     public void SpawnOwnerVfx(int ownerId, GameObject prefab, Vector3 position, Quaternion rotation, Vector3 scale,

@@ -108,7 +108,7 @@ public class DamageNumberPool : MonoBehaviour
             return agent;
 
         if (skipCharAgentPrefab != null)
-            return ObjectsPool.Instance.GetObject(skipCharAgentPrefab, target.transform)?.transform;
+            return ObjectsPool.Instance.Get(skipCharAgentPrefab, target.transform)?.transform;
 
         GameObject go = new GameObject(skipCharAgentName);
         go.transform.SetParent(target.transform, false);
@@ -125,14 +125,14 @@ public class DamageNumberPool : MonoBehaviour
 
         if (skipCharPrefab != null)
         {
-            GameObject instance = ObjectsPool.Instance.GetObject(skipCharPrefab, parent);
+            GameObject instance = ObjectsPool.Instance.Get(skipCharPrefab, parent);
             ConfigureSkipChar(instance, damage, localOffset);
             return;
         }
 
         if (!string.IsNullOrWhiteSpace(skipCharPoolKey))
         {
-            _ = ObjectsPool.Instance.GetObject(skipCharPoolKey, parent,
+            ObjectsPool.Instance.Get(skipCharPoolKey, parent,
                 instance => ConfigureSkipChar(instance, damage, localOffset));
         }
     }
@@ -188,7 +188,7 @@ public class DamageNumberPool : MonoBehaviour
 
             if ((textTransform.localScale - finalScale).sqrMagnitude <= 0.0001f)
             {
-                ObjectsPool.Instance.ReturnObject(entry.RootObject);
+                ObjectsPool.Instance.Put(entry.RootObject);
                 activeSkipChars.RemoveAt(i);
                 i--;
             }

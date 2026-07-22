@@ -3,12 +3,62 @@ guid: a0b07bfa45501de46836234f6ef6f7e8
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0155_EyeMouth
+    second: {fileID: 2100000, guid: 587e914894da44e44800a513b8e69c5b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0155_Shield
+    second: {fileID: 2100000, guid: e3db9b48a1164d44cb0f89b59b9ad39a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0155_Weapon
+    second: {fileID: 2100000, guid: d0466c202f433d54d893a9b884ffdba8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0221_Body
+    second: {fileID: 2100000, guid: 05b7e74e659ca52408ee96fb908a91ff, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0221_EyeMouth
+    second: {fileID: 2100000, guid: b6f29ab0d97f783449983e8c00c76cf8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0221_Eyebrow
+    second: {fileID: 2100000, guid: 79ba5449e1e214347b09380f67a029c3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0221_Face
+    second: {fileID: 2100000, guid: 8b345a62a62f2d64c8da2b295b0191ee, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0221_Hair
+    second: {fileID: 2100000, guid: 26c6af071467a854cab69584ce80aa39, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0221_Halo
+    second: {fileID: 2100000, guid: fa4e2f289be7ce042b243929edce5cea, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0221_Instrument
+    second: {fileID: 2100000, guid: ffa0ccc15f95aa6408e8358e61911049, type: 2}
   materials:
     materialImportMode: 2
     materialName: 1
-    materialSearch: 0
-    materialLocation: 0
+    materialSearch: 2
+    materialLocation: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0

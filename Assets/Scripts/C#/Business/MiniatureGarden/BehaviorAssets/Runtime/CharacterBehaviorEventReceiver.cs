@@ -40,7 +40,7 @@ public class CharacterBehaviorEventReceiver : IBehaviorEventReceiver
 
         Vector3 originalPosition = position;
         Quaternion originalRotation = rotation;
-        GameObject projectile = ObjectsPool.Instance.GetObject(prefab);
+        GameObject projectile = ObjectsPool.Instance.Get(prefab);
 
         Vector3 fallbackDirection = rotation * Vector3.forward;
         ProjectileTargetingResult targetingResult = default;
@@ -88,7 +88,7 @@ public class CharacterBehaviorEventReceiver : IBehaviorEventReceiver
                     prefab);
             }
 
-            ObjectsPool.Instance.ReturnObject(projectile);
+            ObjectsPool.Instance.Put(projectile);
             return;
         }
 

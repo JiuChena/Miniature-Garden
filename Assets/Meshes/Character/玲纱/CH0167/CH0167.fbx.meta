@@ -3,12 +3,52 @@ guid: fb3ee1246be6b86428ecfc36a1e6faf2
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0167_Body
+    second: {fileID: 2100000, guid: 14285b19797e962458d39d9d9059b54a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0167_EyeMouth
+    second: {fileID: 2100000, guid: d9660281e07d1e843924b1530939a166, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0167_Eyebrow
+    second: {fileID: 2100000, guid: a0b4e75c091ed6e41ac5e141c2f0a779, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0167_Face
+    second: {fileID: 2100000, guid: 9da6aa9619d25244b85b025f62276f5e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0167_Hair
+    second: {fileID: 2100000, guid: f2b8b17925b6e2949ac57cdb18ab8179, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0167_Halo
+    second: {fileID: 2100000, guid: 724697dd55d7fd942bd96ffb11ff97b7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0167_Letter
+    second: {fileID: 2100000, guid: 6293b6d06fa888f46ad9dbbce8e80797, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CH0167_Weapon
+    second: {fileID: 2100000, guid: 556ac4356fbaa694fbc39157cbc146bc, type: 2}
   materials:
     materialImportMode: 2
     materialName: 1
-    materialSearch: 0
-    materialLocation: 0
+    materialSearch: 2
+    materialLocation: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0

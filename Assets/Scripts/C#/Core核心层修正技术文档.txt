@@ -1,0 +1,892 @@
+# Core 核心层修正技术文档
+
+## 一、文档目的
+
+本文档用于重新定义单位状态模块，并作为后续重构 `StatusData`、`UnitEffectController`、`GlobalEffectSystem`、状态 UI 和 Buff 系统的实现依据。
+
+旧方案把 `BaseUnitStatus` 主要理解为单位状态 UI 的展示壳，这个定位不完整。修正后的 `BaseUnitStatus` 是单位状态领域唯一的 Unity 组件入口，负责属性扩展注册、状态生命周期、统一 Tick、状态事件、状态 UI 上下文以及单位侧 Effect/Buff 管理。
+
+核心目标：
+
+1. 一个单位最多挂载一个状态模块，不为生命、攻击、防御、受伤、Buff 等能力分别挂载多个 `MonoBehaviour`。
+2. 状态能力通过普通 C# 属性扩展类实现，并由 `BaseUnitStatus` 或其派生类批量注册。
+3. `BaseUnitStatus` 统一调度属性扩展的 DataTick、BehaviorTick 和 UITick。
+4. 状态 UI 由专用状态 UI 服务生成，属性扩展不直接依赖 `MonoBehaviour` 或场景 Canvas。
+5. 单位侧 Effect/Buff 完全融合进状态模块，不再要求额外挂载 `UnitEffectController`。
+6. `CharacterDriver`、`EnemyDriver` 等 Driver 保持原有职责，不继承、不替代 `BaseUnitStatus`。
+7. 状态数据只有一个权威来源，禁止 `StatusData` 与新状态属性扩展同时保存两套运行时数值。
+
+---
+
+## 二、核心设计主旨
+
+### 2.1 一个领域只有一个主模块
+
+模块划分以领域为边界：
+
+- `CharacterDriver` 统领角色行为、移动、动画、技能和输入控制。
+- `EnemyDriver` 统领敌人 AI、行为、动画和技能调度。
+- `BaseUnitStatus` 统领单位生命、攻击、防御、受伤、死亡、特殊状态、Buff、状态 UI 和状态事件。
+
+`BaseUnitStatus` 与 Driver 是并列模块，不存在继承关系。Driver 可以查询和调用状态模块，但不能成为状态数据的第二持有者。
+
+推荐的单位组件结构：
+
+```text
+Unit GameObject
+├─ CharacterDriver / EnemyDriver     行为领域唯一主模块
+├─ BaseUnitStatus 或其派生类          状态领域唯一主模块
+├─ Animator / Collider / Renderer     Unity 基础设施组件
+└─ 其他不同领域的主模块
+```
+
+以下结构禁止出现：
+
+```text
+Unit GameObject
+├─ HealthStatus MonoBehaviour
+├─ AttackStatus MonoBehaviour
+├─ DefenseStatus MonoBehaviour
+├─ DamageStatus MonoBehaviour
+├─ BuffStatus MonoBehaviour
+└─ UnitEffectController MonoBehaviour
+```
+
+生命、攻击、防御、受伤和 Buff 必须作为普通 C# 属性扩展注册到唯一的 `BaseUnitStatus` 中。
+
+### 2.2 Unity 层单模块，代码层可组合
+
+“一个大模块统领所有状态功能”不等于把所有代码写进一个几千行类。
+
+`BaseUnitStatus` 是对外唯一入口和内部调度者；属性扩展是被注册和调度的普通 C# 对象。它们不继承 `MonoBehaviour`，不会增加 GameObject 上的组件数量，也不会拥有独立 Unity 生命周期。
+
+```text
+BaseUnitStatus
+├─ 注册扩展
+├─ 建立状态上下文
+├─ 分类 Tick 列表
+├─ 调度状态事件
+├─ 提供统一查询和修改 API
+└─ 管理状态模块生命周期
+
+属性扩展
+├─ HealthAttribute
+├─ AttackAttribute
+├─ DefenseAttribute
+├─ DamageAttribute
+├─ EffectAttribute
+├─ BuffIconAttribute
+└─ 项目自定义属性
+```
+
+属性扩展不是“被某个固定类拥有的子模块”。任何实现属性扩展契约的普通 C# 类，都可以被 `BaseUnitStatus` 或其派生类注册、替换和移除。
+
+---
+
+## 三、BaseUnitStatus 的正式定位
+
+### 3.1 基础职责
+
+`BaseUnitStatus` 必须负责：
+
+1. 生成并持有单位状态上下文。
+2. 批量注册默认属性扩展和项目自定义属性扩展。
+3. 在注册阶段按能力接口分类扩展，运行期不反复进行类型判断。
+4. 统一执行 DataTick、BehaviorTick 和 UITick。
+5. 提供属性查询、属性修改、受伤、治疗、Buff 添加移除等统一 API。
+6. 通过 EventCenter 发布状态变化事件。
+7. 为属性扩展提供状态 UI 服务。
+8. 维护单位当前活动 Effect/Buff。
+9. 在禁用、对象池回收和销毁时正确清理状态、事件订阅和 UI。
+
+### 3.2 必须可直接挂载
+
+`BaseUnitStatus` 不应定义为抽象类。普通单位可以直接挂载它并获得生命、攻击、防御和 Effect/Buff 等基础状态能力。
+
+项目需要特殊状态组合时，可以继承：
+
+```csharp
+public sealed class CharacterUnitStatus : BaseUnitStatus
+{
+    protected override void RegisterProjectAttributes(StatusAttributeRegistry registry)
+    {
+        registry.Add(new DamageAttribute());
+        registry.Add(new CharacterBuffIconAttribute());
+    }
+}
+```
+
+### 3.3 默认注册与项目注册分离
+
+`BaseUnitStatus` 的初始化注册分为两个阶段：
+
+```csharp
+protected virtual void RegisterDefaultAttributes(StatusAttributeRegistry registry)
+{
+    registry.Add(new HealthAttribute());
+    registry.Add(new AttackAttribute());
+    registry.Add(new DefenseAttribute());
+    registry.Add(new EffectAttribute());
+}
+
+protected virtual void RegisterProjectAttributes(StatusAttributeRegistry registry)
+{
+}
+```
+
+默认属性保证直接挂载即可工作；派生类只负责注册项目特有能力。
+
+注册器必须支持：
+
+- `Add`：添加新属性扩展。
+- `Replace`：替换默认属性实现，例如 Boss 多段生命。
+- `Remove`：移除不需要的默认能力。
+- `TryGet`：按接口或属性标识查询扩展。
+- 唯一性检查：禁止重复注册互斥的核心属性。
+- 依赖检查：例如 DamageAttribute 必须依赖 HealthAttribute 和 DefenseAttribute。
+
+---
+
+## 四、属性扩展契约
+
+### 4.1 基础接口
+
+所有属性扩展都实现统一生命周期接口：
+
+```csharp
+public interface IStatusAttributeExtension
+{
+    StatusAttributeId AttributeId { get; }
+
+    void OnRegister(in StatusAttributeContext context);
+    void OnUnregister();
+}
+```
+
+`OnRegister` 只执行一次，用于保存上下文、创建状态 UI、订阅事件和建立依赖。
+
+`OnUnregister` 用于解除事件、回收 UI、清理运行时数据。销毁顺序应与注册顺序相反。
+
+### 4.2 可选 Tick 接口
+
+不是所有属性都需要执行所有 Tick。扩展按需实现能力接口：
+
+```csharp
+public interface IStatusDataTick
+{
+    void DataTick(float deltaTime);
+}
+
+public interface IStatusBehaviorTick
+{
+    void BehaviorTick(float deltaTime);
+}
+
+public interface IStatusUITick
+{
+    void UITick(float deltaTime);
+}
+```
+
+职责约定：
+
+- `DataTick`：持续恢复、持续消耗、Buff 持续时间、周期效果、属性重算。
+- `BehaviorTick`：低血量状态、冻结限制、无敌闪烁、特殊状态行为。
+- `UITick`：血条位置、平滑插值、跳字动画、Buff 图标倒计时和朝向更新。
+
+### 4.3 状态事件接收接口
+
+一次性状态变化不应依赖每帧轮询猜测：
+
+```csharp
+public interface IStatusEventReceiver
+{
+    void OnStatusEvent(in UnitStatusEvent statusEvent);
+}
+```
+
+典型状态事件：
+
+- HealthChanged
+- AttackChanged
+- DefenseChanged
+- Damaged
+- Healed
+- Died
+- Revived
+- EffectAdded
+- EffectRemoved
+- EffectStackChanged
+- SpecialStateAdded
+- SpecialStateRemoved
+
+事件负责传递“发生了什么”；Tick 负责持续推进“接下来如何表现”。
+
+---
+
+## 五、属性上下文
+
+属性扩展不是 `MonoBehaviour`，不能直接使用 Unity 生命周期和序列化字段，因此必须由 `BaseUnitStatus` 注入统一上下文：
+
+```csharp
+public readonly struct StatusAttributeContext
+{
+    public readonly BaseUnitStatus Status;
+    public readonly GameObject UnitObject;
+    public readonly Transform UnitTransform;
+    public readonly Transform UIAnchor;
+    public readonly IStatusUIService UI;
+    public readonly EventCenter Events;
+    public readonly IStatusAttributeResolver Attributes;
+}
+```
+
+上下文只提供状态扩展工作所需的稳定入口。扩展禁止自行使用 `Find`、`FindObjectOfType` 或每帧 `GetComponent`。
+
+Driver 不放入基础上下文作为强依赖。确实需要业务 Driver 的项目扩展，可以通过 `BaseUnitStatus` 提供的一次性组件解析接口查询并缓存，但基础状态属性不得依赖 `CharacterDriver` 或 `EnemyDriver`。
+
+---
+
+## 六、基础属性实现
+
+### 6.1 HealthAttribute
+
+负责：
+
+- BaseHealth
+- MaxHealth
+- CurrentHealth
+- 固定值和百分比生命修正
+- 扣血和治疗
+- 死亡与复活判定
+- 生命变化事件
+- 可选血条 UI
+
+不负责：
+
+- 防御计算
+- 攻击技能行为
+- 伤害跳字样式
+- 死亡动画控制
+
+对外能力接口建议：
+
+```csharp
+public interface IHealthAttribute : IStatusAttributeExtension
+{
+    float CurrentHealth { get; }
+    float MaxHealth { get; }
+    bool IsDead { get; }
+
+    HealthChangeResult ApplyDamage(float finalDamage);
+    HealthChangeResult RestoreHealth(float amount);
+    void AddModifier(in StatusModifier modifier);
+    void RemoveModifier(int modifierHandle);
+}
+```
+
+### 6.2 AttackAttribute
+
+负责基础攻击、固定攻击修正、百分比攻击修正和最终攻击力重算。
+
+```text
+FinalAttack = max(0, BaseAttack * (1 + PercentModifierSum) + FlatModifierSum)
+```
+
+攻击动画、攻击输入和技能释放仍由 Driver/行为系统负责。
+
+### 6.3 DefenseAttribute
+
+负责基础防御、防御修正、免伤修正以及伤害进入生命属性前的防御计算。
+
+防御公式不能写死在 `DamageAttribute` 或投射物中，应通过 `IDefenseAttribute.ResolveIncomingDamage` 统一处理。
+
+### 6.4 DamageAttribute
+
+负责组织一次受伤流程和受伤表现，不保存第二份生命值：
+
+```text
+ReceiveDamage(request)
+→ DefenseAttribute 计算最终伤害
+→ HealthAttribute 扣减生命
+→ 发布 Damaged / HealthChanged / Died 事件
+→ DamageAttribute 创建跳字、闪白或其他受伤表现
+```
+
+`DamageAttribute` 可以实现 `IStatusEventReceiver` 和 `IStatusUITick`。收到受伤事件时创建跳字；存在活动跳字时在 `UITick` 中推进动画。
+
+---
+
+## 七、BaseUnitStatus 的统一对外 API
+
+外部系统只访问 `BaseUnitStatus` 或稳定接口 `IUnitStatus`，不直接依赖具体属性实现：
+
+```csharp
+public interface IUnitStatus
+{
+    int UnitId { get; }
+    UnitAlignment Alignment { get; }
+    float CurrentHealth { get; }
+    float MaxHealth { get; }
+    float AttackPower { get; }
+    float Defense { get; }
+    bool IsDead { get; }
+
+    DamageResult ReceiveDamage(in DamageRequest request);
+    float RestoreHealth(float amount);
+    bool ApplyEffect(in EffectApplyRequest request);
+    bool RemoveEffect(int runtimeEffectId);
+    bool TryGetAttribute<T>(out T attribute)
+        where T : class, IStatusAttributeExtension;
+}
+```
+
+`BaseUnitStatus` 的生命、攻击、防御属性只是对已注册扩展的门面访问：
+
+```csharp
+public float CurrentHealth => _healthAttribute.CurrentHealth;
+public float AttackPower => _attackAttribute.Value;
+public float Defense => _defenseAttribute.Value;
+```
+
+这样外部调用保持简单，内部实现仍可替换。
+
+---
+
+## 八、批量注册和 Tick 调度
+
+### 8.1 注册时分类
+
+`BaseUnitStatus` 内部维护：
+
+```csharp
+private readonly List<IStatusAttributeExtension> _extensions = new();
+private readonly List<IStatusDataTick> _dataTicks = new();
+private readonly List<IStatusBehaviorTick> _behaviorTicks = new();
+private readonly List<IStatusUITick> _uiTicks = new();
+private readonly List<IStatusEventReceiver> _eventReceivers = new();
+```
+
+扩展注册时完成接口分类，运行时直接遍历对应列表。禁止每帧遍历所有扩展并不断使用 `is` 进行接口判断。
+
+### 8.2 固定 Tick 顺序
+
+推荐顺序：
+
+```text
+Update
+1. EffectAttribute 推进 Buff 持续时间和周期效果
+2. 提交本帧 Effect 添加、移除和层数变化
+3. 属性 DataTick 和脏属性重算
+4. 分发本帧状态事件
+5. 属性 BehaviorTick
+
+LateUpdate
+6. 属性 UITick
+```
+
+这样 Buff 在同一帧造成属性变化后，UI 读取到的是最终状态。
+
+### 8.3 遍历期间禁止直接修改列表
+
+Tick 过程中新增或移除属性扩展、Effect 或 Buff 时必须进入待处理队列，在当前遍历结束后统一提交，避免跳过元素、重复执行和索引越界。
+
+属性扩展通常在初始化阶段固定注册。运行期频繁变化的是 Effect/Buff 实例，不应通过重复注册和注销属性扩展实现。
+
+### 8.4 无效 Tick 优化
+
+允许 Tick 接口增加活动状态：
+
+```csharp
+public interface IActivatableStatusTick
+{
+    bool IsTickActive { get; }
+}
+```
+
+例如没有跳字时 `DamageAttribute` 不执行 UI 动画，没有 Buff 时 `EffectAttribute` 可以快速返回。是否进一步维护活动 Tick 列表，应在性能分析后决定，初版优先保持实现清晰。
+
+---
+
+## 九、状态 UI 系统
+
+### 9.1 状态属性不能直接依赖 MonoBehaviour
+
+属性扩展通过 `IStatusUIService` 请求创建 UI：
+
+```csharp
+public interface IStatusUIService
+{
+    StatusUIHandle Create(
+        StatusUIViewType viewType,
+        int unitId,
+        Transform anchor);
+
+    void Release(StatusUIHandle handle);
+    void ReleaseAll(int unitId);
+}
+```
+
+状态 UI 服务类似 PanelManager，但服务对象是单位状态视图，负责：
+
+- 状态 UI 预制体加载。
+- 对象池获取与回收。
+- World-Space Canvas 创建或复用。
+- 单位 UI 锚点绑定。
+- 摄像机朝向和显示距离。
+- 单位销毁时批量回收。
+- 血条、护盾条、跳字、Buff 图标的视图句柄。
+
+属性扩展只负责告诉 UI 服务“创建什么”和“显示什么数据”。
+
+### 9.2 事件与 UITick 的关系
+
+EventCenter 用于传递目标数据变化，UITick 用于平滑显示和动画：
+
+```text
+HealthAttribute 修改生命
+→ EventCenter 发布 UnitHealthChangedEvent
+→ 血条视图记录新的目标百分比
+→ HealthAttribute.UITick 推进血条平滑插值和世界坐标
+```
+
+### 9.3 Canvas 性能边界
+
+同一单位的血条、跳字和 Buff 图标可以放入同一 World-Space Canvas，以隔离单个单位的 UI 重建并减少单位内部渲染拆分。
+
+多个独立 Canvas 通常仍然是不同批处理边界，不能承诺“多个单位天然合为一个批次”。如果同屏单位数量很高，需要通过性能分析决定是否使用集中式状态 Canvas 或专用跳字渲染方案。
+
+---
+
+## 十、Effect/Buff 与状态模块融合方案
+
+### 10.1 融合原则
+
+Buff 是单位状态的一部分。单位当前有哪些 Buff、Buff 剩余时间、Buff 层数、属性修正、Buff 图标和 Buff 移除，都必须由状态模块管理。
+
+全局 Effect 系统只负责跨单位能力：
+
+- 解析效果目标。
+- 根据阵营和范围筛选单位。
+- 构建 Effect/Buff 申请。
+- 将申请投递到目标 `BaseUnitStatus`。
+
+全局系统不再负责：
+
+- 保存所有单位的活动 Buff 列表。
+- 在自己的 Update 中推进每个 Buff。
+- 直接修改单位属性字段。
+
+单位侧 Effect/Buff 由默认注册的 `EffectAttribute` 负责，并通过 `BaseUnitStatus` 的 DataTick 推进。
+
+### 10.2 EffectAttribute
+
+`EffectAttribute` 是普通 C# 属性扩展：
+
+```csharp
+public sealed class EffectAttribute :
+    IStatusAttributeExtension,
+    IStatusDataTick,
+    IStatusEventReceiver
+{
+    private readonly List<RuntimeStatusEffect> _activeEffects = new();
+    private readonly List<RuntimeStatusEffect> _pendingAdd = new();
+    private readonly List<int> _pendingRemove = new();
+}
+```
+
+负责：
+
+- 接收 EffectApplyRequest。
+- 创建 RuntimeStatusEffect。
+- 处理同 Buff 重复施加和叠层策略。
+- 推进持续时间和周期触发。
+- 向属性扩展添加和移除修正项。
+- 发布 Buff 添加、移除、刷新和层数变化事件。
+- 提供 Buff UI 快照。
+- 清理单位禁用、对象池回收和销毁时的所有 Effect。
+
+### 10.3 GlobalEffectSystem 调整
+
+当前 `GlobalEffectSystem` 同时承担目标解析、活动效果存储和逐帧推进，职责过多。重构后：
+
+```text
+GlobalEffectSystem.ApplyEffect(request)
+→ ResolveTargets
+→ targetStatus.ApplyEffect(request.ForTarget(targetStatus))
+→ targetStatus 内部 EffectAttribute 创建和管理运行时实例
+```
+
+`GlobalEffectSystem` 可以继续登记场景内 `IUnitStatus`，用于范围效果和阵营筛选，但不保存 `_activeEffects`，也不执行 RuntimeEffectInstance.Tick。
+
+`UnitEffectController` 的以下职责迁移到 `BaseUnitStatus + EffectAttribute`：
+
+- 单位注册和注销。
+- 活动效果列表。
+- ApplyEffect。
+- ClearAllRuntimeEffects。
+- EffectAdded / EffectRemoved 事件。
+- Buff UI 调试快照。
+
+迁移完成后删除 `UnitEffectController`，角色和敌人预制体不再要求该组件。
+
+### 10.4 BuffDefinition 与 RuntimeStatusEffect 分离
+
+Buff 配置和运行时状态必须分离：
+
+```text
+BuffDefinitionSO
+├─ BuffId
+├─ Tags
+├─ Duration
+├─ TickInterval
+├─ StackingPolicy
+├─ MaxStacks
+├─ DispelCategory
+├─ UI 配置
+└─ ModifierDefinitions
+
+RuntimeStatusEffect
+├─ RuntimeId
+├─ Definition
+├─ SourceStatus
+├─ TargetStatus
+├─ StackCount
+├─ ElapsedTime
+├─ NextTickTime
+├─ ModifierHandles
+└─ RuntimeState
+```
+
+`ScriptableObject` 只保存静态配置，禁止在 SO 中保存目标、剩余时间、层数等运行时数据。
+
+### 10.5 修正项必须使用句柄
+
+当前 Buff 开始时累加数值、结束时再减去相同数值，容易在叠层、刷新、强制清理和异常中断时发生数值漂移。
+
+推荐所有属性修正使用独立句柄：
+
+```csharp
+int modifierHandle = attackAttribute.AddModifier(
+    new StatusModifier(runtimeEffectId, flatValue, percentValue));
+
+attackAttribute.RemoveModifier(modifierHandle);
+```
+
+每个属性扩展保存自己的修正项集合，并从基础值重新计算最终值：
+
+```text
+FinalValue = BaseValue * (1 + PercentModifierSum) + FlatModifierSum
+```
+
+优势：
+
+- Buff 移除不依赖“减回原值”。
+- 相同 Buff 多层叠加不会互相减错。
+- 对象池回收时可按 RuntimeEffectId 批量移除。
+- Buff 强度变化时只更新对应修正项。
+- 调试时可以追踪每一个最终数值来自哪个效果。
+
+### 10.6 Buff 叠加策略
+
+框架应提供明确枚举，不让每个 Buff 自己临时判断：
+
+```csharp
+public enum BuffStackingPolicy
+{
+    Independent,
+    RefreshDuration,
+    AddStackAndRefresh,
+    ReplaceIfStronger,
+    IgnoreIfPresent
+}
+```
+
+建议语义：
+
+- `Independent`：每次施加创建独立实例，适合不同来源的独立 DOT。
+- `RefreshDuration`：同键 Buff 不增加层数，只刷新持续时间。
+- `AddStackAndRefresh`：增加层数并刷新时间，达到 MaxStacks 后只刷新。
+- `ReplaceIfStronger`：只有新效果更强时替换旧效果。
+- `IgnoreIfPresent`：已有时拒绝新效果。
+
+Buff 唯一键建议至少包含：
+
+```text
+BuffId + SourceUnitId（按来源独立时）
+BuffId（所有来源共享时）
+```
+
+是否包含来源由 BuffDefinitionSO 配置，不能写死。
+
+### 10.7 Buff 生命周期
+
+标准流程：
+
+```text
+Apply
+→ 检查免疫、标签和叠加策略
+→ 创建或合并 RuntimeStatusEffect
+→ 添加属性修正句柄
+→ 执行 OnApply
+→ 发布 EffectAdded / EffectStackChanged
+
+DataTick
+→ 推进持续时间
+→ 补齐到期的周期 Tick
+→ 执行 OnPeriodic
+→ 到期后进入待移除队列
+
+Remove
+→ 执行 OnRemove
+→ 按句柄移除属性修正
+→ 回收运行时实例
+→ 发布 EffectRemoved
+```
+
+Tick 过程中不能立即修改 `_activeEffects`，统一写入 `_pendingAdd` 和 `_pendingRemove`，遍历完成后提交。
+
+### 10.8 Buff 时间与卡顿补偿
+
+周期 Buff 不应在卡顿后把下次触发时间重置成当前时间。应使用：
+
+```text
+NextTickTime = PreviousNextTickTime + TickInterval
+```
+
+并在当前时间已经越过多个间隔时循环补齐周期触发，避免 Unity 卡顿导致 DOT、HOT 少执行次数。
+
+为了防止一次严重卡顿在单帧补齐过多 Tick，可配置每帧最大补偿次数；未补齐的次数留到后续帧继续执行，不能直接丢弃。
+
+短生命周期 Buff 可以使用 `double` 保存运行时间和下一次触发时间。状态模块无需为每个 Buff 单独创建协程。
+
+### 10.9 Buff UI
+
+EffectAttribute 在 Buff 添加、移除、刷新、叠层时通过 EventCenter 发布：
+
+```text
+UnitEffectAddedEvent
+UnitEffectRemovedEvent
+UnitEffectDurationRefreshedEvent
+UnitEffectStackChangedEvent
+```
+
+BuffIconAttribute 或状态 UI 服务根据事件创建、更新和回收图标。
+
+Buff 图标的倒计时可以在 UITick 中读取 EffectAttribute 提供的只读快照，不允许 UI 直接修改 RuntimeStatusEffect。
+
+### 10.10 Buff 标签与驱散
+
+BuffDefinitionSO 建议提供标签：
+
+```text
+Buff.Positive
+Buff.Negative
+Control.Stun
+Control.Freeze
+Damage.Burning
+Defense.Shield
+Undispellable
+```
+
+EffectAttribute 提供：
+
+```csharp
+int RemoveEffectsByTag(StatusTag tag, int maxCount = int.MaxValue);
+bool HasEffectTag(StatusTag tag);
+bool HasEffect(string buffId);
+```
+
+驱散逻辑只操作 EffectAttribute，不直接访问 UI 或属性修正列表。
+
+---
+
+## 十一、Driver 与状态模块的交互
+
+Driver 不继承 `BaseUnitStatus`，也不保存独立战斗状态。
+
+```text
+CharacterDriver
+→ 读取 UnitAssetInformation
+→ 构建 UnitStatusSnapshot
+→ BaseUnitStatus.ApplySnapshot(snapshot)
+→ BaseUnitStatus 将基础值分发给注册的属性扩展
+```
+
+Driver 需要攻击力、生命或效果宿主时，通过缓存的 `IUnitStatus` 查询。Driver 可以响应死亡事件切换行为状态，但死亡判定仍由 HealthAttribute 完成。
+
+推荐交互：
+
+```csharp
+private IUnitStatus _status;
+
+private void Awake()
+{
+    _status = GetComponent<IUnitStatus>();
+}
+```
+
+实际实现中应通过具体 `BaseUnitStatus` 获取后缓存为接口，避免每帧 GetComponent。
+
+---
+
+## 十二、StatusData 的迁移
+
+当前 `StatusData` 同时保存基础值、最终值、当前生命、Modifier 和死亡状态。新架构落地后，这些职责分别进入对应属性扩展。
+
+最终目标：
+
+- `StatusData` 不再作为独立 `MonoBehaviour` 挂载。
+- `BaseUnitStatus` 成为单位状态唯一组件。
+- 生命值进入 HealthAttribute。
+- 攻击力进入 AttackAttribute。
+- 防御力和免伤进入 DefenseAttribute。
+- 暴击、穿透等属性进入独立属性扩展或统一 CombatAttribute。
+- Buff 修正进入各属性扩展的 Modifier 集合。
+- 原状态快照改为纯数据 `UnitStatusSnapshot`。
+
+迁移期间可以让 `BaseUnitStatus` 暂时提供与 `StatusData` 相同的门面属性和方法，逐步把调用方改为 `IUnitStatus`。不允许长期保留双写同步方案。
+
+---
+
+## 十三、建议目录结构
+
+```text
+Framework/Gameplay/Status/
+├─ Core/
+│  ├─ BaseUnitStatus.cs
+│  ├─ IUnitStatus.cs
+│  ├─ StatusAttributeContext.cs
+│  ├─ StatusAttributeRegistry.cs
+│  ├─ StatusAttributeId.cs
+│  ├─ UnitStatusEvent.cs
+│  └─ UnitStatusSnapshot.cs
+├─ Extensions/
+│  ├─ IStatusAttributeExtension.cs
+│  ├─ IStatusDataTick.cs
+│  ├─ IStatusBehaviorTick.cs
+│  ├─ IStatusUITick.cs
+│  └─ IStatusEventReceiver.cs
+├─ Attributes/
+│  ├─ HealthAttribute.cs
+│  ├─ AttackAttribute.cs
+│  ├─ DefenseAttribute.cs
+│  ├─ DamageAttribute.cs
+│  └─ EffectAttribute.cs
+├─ Effects/
+│  ├─ BuffDefinitionSO.cs
+│  ├─ RuntimeStatusEffect.cs
+│  ├─ StatusModifier.cs
+│  ├─ BuffStackingPolicy.cs
+│  └─ GlobalEffectSystem.cs
+└─ UI/
+   ├─ IStatusUIService.cs
+   ├─ StatusUIService.cs
+   ├─ StatusUIHandle.cs
+   └─ StatusUIViewType.cs
+```
+
+业务层只实现项目特有属性、状态 UI 内容和状态派生类：
+
+```text
+Business/MiniatureGarden/Status/
+├─ CharacterUnitStatus.cs
+├─ EnemyUnitStatus.cs
+├─ Attributes/
+│  ├─ CharacterBuffIconAttribute.cs
+│  ├─ EnemyHealthBarAttribute.cs
+│  └─ BossSegmentHealthAttribute.cs
+└─ UI/
+   ├─ HealthBarView.cs
+   ├─ DamageNumberView.cs
+   └─ BuffIconView.cs
+```
+
+---
+
+## 十四、迁移实施顺序
+
+### 阶段一：搭建状态扩展内核
+
+1. 创建属性扩展接口、上下文、注册器和事件载荷。
+2. 创建可直接挂载的 BaseUnitStatus。
+3. 实现固定 Tick 顺序和延迟增删队列。
+4. 实现 Health、Attack、Defense 默认属性。
+
+### 阶段二：迁移状态数据
+
+1. 将 StatusData 的基础值、最终值和 Modifier 分别迁入属性扩展。
+2. 使用 ModifierHandle 替代加值/减值回滚。
+3. BaseUnitStatus 提供兼容门面 API。
+4. 将索敌、投射物、伤害计算和 UI 调用方迁移到 IUnitStatus。
+
+### 阶段三：融合 Effect/Buff
+
+1. 创建 EffectAttribute 和 RuntimeStatusEffect。
+2. 将 UnitEffectController 的单位侧职责迁入 EffectAttribute。
+3. 将 GlobalEffectSystem 调整为目标解析和投递服务。
+4. 将 BuffDataSO 改为 ModifierDefinition 列表和明确叠层策略。
+5. 迁移所有 EffectDefinitionSO 上下文到 IUnitStatus。
+6. 删除 UnitEffectController 组件依赖。
+
+### 阶段四：迁移状态 UI
+
+1. 创建状态 UI 服务和视图句柄。
+2. 创建 HealthBar、DamageNumber、BuffIcon 属性扩展。
+3. 使用 EventCenter 传递数据变化。
+4. 使用 UITick 推进位置、平滑和动画。
+5. 删除旧 DamageNumberPool 和重复状态 UI 逻辑。
+
+### 阶段五：清理旧架构
+
+1. 删除 StatusData MonoBehaviour。
+2. 删除 UnitEffectController MonoBehaviour。
+3. 删除旧加减 Modifier API。
+4. 更新预制体和场景组件。
+5. 更新技术文档和知识库。
+
+---
+
+## 十五、验证标准
+
+### 功能验证
+
+- 直接挂载 BaseUnitStatus 后具备生命、攻击、防御基础属性。
+- 派生类可以批量追加或替换属性扩展。
+- 一个单位只有一个状态 MonoBehaviour。
+- Driver 与状态模块保持并列关系。
+- 受伤正确经过防御、生命、事件和 UI 流程。
+- Buff 添加、叠层、刷新、移除和驱散不会产生属性漂移。
+- 对象池回收后没有残留 Buff、事件订阅或 UI。
+- Unity 卡顿后周期 Buff 能补齐应执行的 Tick。
+
+### 性能验证
+
+- Update、LateUpdate 中无 Find、GetComponent 和 LINQ。
+- 属性扩展注册阶段允许分配，运行期 Tick 保持零 GC。
+- UI 使用对象池，不在热路径 Instantiate/Destroy。
+- Tick 遍历中不直接修改活动列表。
+- 无 UI 属性时不创建 World-Space Canvas。
+
+### 架构验证
+
+- 状态数据只有一个权威来源。
+- 状态属性扩展全部是普通 C# 对象。
+- Effect/Buff 的单位侧状态全部归 BaseUnitStatus 管理。
+- GlobalEffectSystem 不替单位保存和推进 Buff。
+- 业务层不复制框架层属性计算、Buff 调度和状态 UI 管理能力。
+
+---
+
+## 十六、最终架构决策
+
+1. `BaseUnitStatus` 是单位状态领域唯一 Unity 主模块，并且可以直接挂载。
+2. `CharacterDriver`、`EnemyDriver` 等 Driver 不继承 BaseUnitStatus，保持各自领域职责。
+3. 生命、攻击、防御等基础属性由实现属性扩展接口的普通 C# 类提供。
+4. BaseUnitStatus 和派生类通过批量注册决定单位具备哪些状态属性。
+5. BaseUnitStatus 统一提供 DataTick、BehaviorTick 和 UITick。
+6. 状态 UI 由专用 IStatusUIService 生成和回收，通过 EventCenter 接收数据变化。
+7. 单位侧 Effect/Buff 由默认 EffectAttribute 管理，不再使用独立 UnitEffectController 组件。
+8. GlobalEffectSystem 只负责跨单位目标解析和效果投递。
+9. Buff 属性修正使用 ModifierHandle，禁止依靠结束时减回原值。
+10. StatusData 最终退出 MonoBehaviour 角色，BaseUnitStatus 成为唯一状态权威入口。

@@ -21,6 +21,7 @@ Shader "Cartoon"
 		_MainTex("Albedo Texture", 2D) = "white" {}
 		[NoScaleOffset][SingleLineTexture]_LightRampTexture("Light Ramp Texture", 2D) = "white" {}
 		_StepOffset("Step Offset", Range( -0.5 , 0.5)) = 0
+		_RampSmooth("Ramp Smoothness", Range(0, 0.5)) = 0.01
 		[KeywordEnum(Step,DiffuseRamp,Posterize)] _UseLightRamp("Shading Mode", Float) = 0
 		[HideInInspector]_RampDiffuseTextureLoaded("RampDiffuseTextureLoaded", Float) = 1
 		[HDR]_RimColor("Rim Color", Color) = (1,1,1,0)
@@ -53,6 +54,7 @@ Shader "Cartoon"
 		_MainLightIntesity("Main Light Intesity", Range( 0 , 6)) = 1
 		_OutlineTextureStrength("Texture Strength ", Range( 0 , 1)) = 0
 		_ShadowColor("Shadow Color", Color) = (0,0,0,0)
+		[HDR]_HColor("Highlight Color", Color) = (1,1,1,1)
 		_RimShadowColor("Rim Shadow Color", Color) = (0,0.05551431,0.9622642,0)
 		[KeywordEnum(NoSplit,MultiplyWithDiffuse,UseSecondColor)] _RimSplitColor("Rim Split Color", Float) = 0
 		_OcclusionMap("Occlusion Map", 2D) = "white" {}
@@ -88,7 +90,7 @@ Shader "Cartoon"
 		#pragma target 3.0
 
 		#pragma prefer_hlslcc gles
-		#pragma exclude_renderers d3d11_9x 
+		#pragma exclude_renderers d3d11_9x
 
 		#ifndef ASE_TESS_FUNCS
 		#define ASE_TESS_FUNCS
@@ -290,6 +292,7 @@ Shader "Cartoon"
 			half4 _RimShadowColor;
 			half4 _Color;
 			half4 _ShadowColor;
+			half4 _HColor;
 			half4 _OcclusionMap_ST;
 			half4 _OutlineColor;
 			half _RimThickness;
@@ -314,6 +317,7 @@ Shader "Cartoon"
 			half _LightRampOffset;
 			half _NormalMapStrength;
 			half _StepOffset;
+			half _RampSmooth;
 			half _Cutoff;
 			half _OcclusionStrength;
 			half _OutlineTextureStrength;
@@ -645,6 +649,7 @@ Shader "Cartoon"
 			half4 _RimShadowColor;
 			half4 _Color;
 			half4 _ShadowColor;
+			half4 _HColor;
 			half4 _OcclusionMap_ST;
 			half4 _OutlineColor;
 			half _RimThickness;
@@ -669,6 +674,7 @@ Shader "Cartoon"
 			half _LightRampOffset;
 			half _NormalMapStrength;
 			half _StepOffset;
+			half _RampSmooth;
 			half _Cutoff;
 			half _OcclusionStrength;
 			half _OutlineTextureStrength;
@@ -951,7 +957,6 @@ Shader "Cartoon"
 						ShadowCoords = TransformWorldToShadowCoord( WorldPosition );
 					#endif
 				#endif
-				half temp_output_371_0 = ( _StepOffset + 0.5 );
 				// 法线贴图先在切线空间解码，再利用 VertexFunction 准备的转换基
 				// 转换到世界空间。
 				half2 uv_OcclusionMap = IN.ase_texcoord3.xy * _OcclusionMap_ST.xy + _OcclusionMap_ST.zw;
@@ -965,11 +970,11 @@ Shader "Cartoon"
 				float3 tanNormal1537 = lerpResult1536;
 				half3 worldNormal1537 = normalize( float3(dot(tanToWorld0,tanNormal1537), dot(tanToWorld1,tanNormal1537), dot(tanToWorld2,tanNormal1537)) );
 				float3 BNCurrentNormal1538 = worldNormal1537;
-				// 主光源漫反射项。关键字决定使用硬阶梯、Ramp 纹理或色阶化光照，
-				// 然后再应用阴影衰减。
+				// ── TCP2 风格漫反射管线 ──
+				// 核心思路：不让暗面走向黑色，阴影颜色完全由美术通过 _HColor / _ShadowColor 控制。
+				// 1. N·L 计算（保留 ASE 原有变量名以兼容后续逻辑）
 				half dotResult234 = dot( BNCurrentNormal1538 , _MainLightPosition.xyz );
 				float BNNDotL233 = dotResult234;
-				half3 temp_cast_0 = (BNNDotL233).xxx;
 				half localLightAttenuation1412 = ( 0.0 );
 				half3 WorldPos1412 = WorldPosition;
 				half DistanceAtten1412 = 0;
@@ -985,23 +990,35 @@ Shader "Cartoon"
 				    DistanceAtten1412 = mainLight.distanceAttenuation;
 				    ShadowAtten1412 = mainLight.shadowAttenuation;
 				}
-				float3 BNAttenuationColor244 = ( _MainLightColor.rgb * DistanceAtten1412 );
-				half3 break3_g166 = ( lerp( max( temp_cast_0 , float3(0,0,0) ) , saturate( ( temp_cast_0 * 0.5 ) + 0.5 ) , saturate( (_DiffuseWrap).xxx ) ) * BNAttenuationColor244 );
-				half temp_output_1188_0 = max( max( break3_g166.x , break3_g166.y ) , break3_g166.z );
-				half smoothstepResult444 = smoothstep( ( temp_output_371_0 - 0.009 ) , temp_output_371_0 , temp_output_1188_0);
-				half4 lerpResult1619 = lerp( _ShadowColor , _MainLightColor , saturate( smoothstepResult444 ));
+				// 2. Wrapped Diffuse：把 N·L 从 [-1,1] 映射到 [0,1]，_DiffuseWrap 控制包裹强度
+				half wrappedNL = lerp( max( BNNDotL233 , 0.0 ) , saturate( BNNDotL233 * 0.5 + 0.5 ) , _DiffuseWrap );
+				// 将 wrappedNL 直接作为后续 smoothstep / Ramp / Posterize 的输入（值域 [0,1]），
+				// 不再提前乘入 _MainLightColor，确保阈值不受 HDR 光强影响。
+				half temp_output_1188_0 = wrappedNL;
+				// 3. 明暗分界：_StepOffset 控制阈值，_RampSmooth 控制过渡柔和度
+				half rampThreshold = _StepOffset + 0.5;
+				half smoothstepResult444 = smoothstep( rampThreshold - _RampSmooth , rampThreshold + _RampSmooth , temp_output_1188_0);
+				// 4. 双色插值：_ShadowColor.a 控制阴影强度（TCP2 _SColor.a 机制）
+				//    alpha=0 → 阴影与亮面同色；alpha=1 → 完全采用 _ShadowColor.rgb
+				half shadowIntensity = _ShadowColor.a;
+				half3 shadowColorMixed = lerp( _HColor.rgb , _ShadowColor.rgb , shadowIntensity );
+				// 5. 亮暗插值 → 乘以光源颜色和阴影衰减
+				half4 lerpResult1619 = half4( lerp( shadowColorMixed , _HColor.rgb , saturate( smoothstepResult444 )) , 1.0 );
 				half ShadowAtten1415 = ShadowAtten1412;
-				half4 lerpResult1626 = lerp( _ShadowColor , lerpResult1619 , ShadowAtten1415);
+				half4 lerpResult1626 = half4( lerp( _ShadowColor.rgb , lerpResult1619.rgb , ShadowAtten1415 ) , 1.0 );
+				// Ramp 纹理模式：采样渐变贴图并用 _HColor 着色
 				half2 appendResult356 = (half2(( _LightRampOffset + temp_output_1188_0 ) , 0.0));
 				half2 temp_cast_1 = (0.02).xx;
 				half2 temp_cast_2 = (0.98).xx;
 				half2 clampResult358 = clamp( appendResult356 , temp_cast_1 , temp_cast_2 );
-				half4 lerpResult1617 = lerp( ( tex2D( _LightRampTexture, half2( 0.02,0 ) ) * _MainLightColor ) , ( tex2D( _LightRampTexture, clampResult358 ) * _MainLightColor ) , ShadowAtten1415);
+				half4 lerpResult1617 = half4( lerp( tex2D( _LightRampTexture, half2( 0.02,0 ) ).rgb , tex2D( _LightRampTexture, clampResult358 ).rgb , ShadowAtten1415 ) * _HColor.rgb , 1.0 );
+				// Posterize 模式：色阶化后用 _HColor/_ShadowColor 着色
 				half In1331 = pow( saturate( ( temp_output_1188_0 + ( _DiffusePosterizeOffset * -1.0 ) ) ) , _DiffusePosterizePower );
 				half Steps1331 = round( _DiffusePosterizeSteps );
 				half localPosterize1331 = Posterize1331( In1331 , Steps1331 );
-				half4 lerpResult1629 = lerp( _ShadowColor , _MainLightColor , localPosterize1331);
-				half4 lerpResult1628 = lerp( _ShadowColor , lerpResult1629 , ShadowAtten1415);
+				half3 posterizeColor = lerp( shadowColorMixed , _HColor.rgb , localPosterize1331 );
+				half4 lerpResult1629 = half4( posterizeColor , 1.0 );
+				half4 lerpResult1628 = half4( lerp( _ShadowColor.rgb , lerpResult1629.rgb , ShadowAtten1415 ) , 1.0 );
 				#if defined(_USELIGHTRAMP_STEP)
 				half4 staticSwitch372 = lerpResult1626;
 				#elif defined(_USELIGHTRAMP_DIFFUSERAMP)
@@ -1203,6 +1220,7 @@ Shader "Cartoon"
 			half4 _RimShadowColor;
 			half4 _Color;
 			half4 _ShadowColor;
+			half4 _HColor;
 			half4 _OcclusionMap_ST;
 			half4 _OutlineColor;
 			half _RimThickness;
@@ -1227,6 +1245,7 @@ Shader "Cartoon"
 			half _LightRampOffset;
 			half _NormalMapStrength;
 			half _StepOffset;
+			half _RampSmooth;
 			half _Cutoff;
 			half _OcclusionStrength;
 			half _OutlineTextureStrength;
@@ -1507,6 +1526,7 @@ Shader "Cartoon"
 			half4 _RimShadowColor;
 			half4 _Color;
 			half4 _ShadowColor;
+			half4 _HColor;
 			half4 _OcclusionMap_ST;
 			half4 _OutlineColor;
 			half _RimThickness;
@@ -1531,6 +1551,7 @@ Shader "Cartoon"
 			half _LightRampOffset;
 			half _NormalMapStrength;
 			half _StepOffset;
+			half _RampSmooth;
 			half _Cutoff;
 			half _OcclusionStrength;
 			half _OutlineTextureStrength;

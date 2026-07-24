@@ -93,6 +93,8 @@ public class CartoonEditor : ShaderGUI
     MaterialProperty diffusePosterizeSteps = null;
     MaterialProperty diffuseWrap = null;
     MaterialProperty shadowColor = null;
+    MaterialProperty highlightColor = null;
+    MaterialProperty rampSmooth = null;
 
     MaterialProperty useAdditionalLightsDiffuse = null;
     MaterialProperty additionalLightsDiffuseAmount = null;
@@ -164,6 +166,8 @@ public class CartoonEditor : ShaderGUI
         diffusePosterizeSteps = FindProperty("_DiffusePosterizeSteps", props);
         diffuseWrap = FindProperty("_DiffuseWrap", props);
         shadowColor = FindProperty("_ShadowColor", props);
+        highlightColor = FindProperty("_HColor", props);
+        rampSmooth = FindProperty("_RampSmooth", props);
 
         specularFaloff= FindProperty("_SpecularFaloff", props);
         smoothnessMultiplier = FindProperty("_SmoothnessMultiplier", props);
@@ -404,6 +408,8 @@ public class CartoonEditor : ShaderGUI
         {
             //m_Material.DisableKeyword("_USELIGHTRAMPON");
             DrawProperty(stepOffset);
+            DrawProperty(rampSmooth);
+            DrawProperty(highlightColor);
             DrawProperty(shadowColor);
 
         }
@@ -411,6 +417,7 @@ public class CartoonEditor : ShaderGUI
         {
             //m_Material.EnableKeyword("_USELIGHTRAMPON");
             DrawProperty(lightRampOffset);
+            DrawProperty(highlightColor);
 
             EditorGUILayout.BeginHorizontal();
 
@@ -462,6 +469,7 @@ public class CartoonEditor : ShaderGUI
         }
         else if(lightRampUse.floatValue == 2)
         {
+            DrawProperty(highlightColor);
             DrawProperty(shadowColor);
             DrawProperty(diffusePosterizeOffset);
             DrawProperty(diffusePosterizeSteps);

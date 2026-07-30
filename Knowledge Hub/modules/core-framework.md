@@ -1,7 +1,7 @@
 ---
 tags: [module, framework, core]
 created: 2026-06-19
-updated: 2026-06-20
+updated: 2026-07-22
 ---
 
 # 核心框架层
@@ -54,17 +54,19 @@ updated: 2026-06-20
 
 ## 音频与持久化
 - `AudioManager`
-  - 运行时播放
-  - `Play / Stop / SetAudio / RemoveAudio`
+  - 运行时播放，全局设置存于 `globalSettings`（AudioData 实例）
+  - `Play` 三种重载：世界空间 / 挂父对象 / 挂父对象+相对位置
+  - `SetAudio` 支持已加载 Clip 或 Addressable Key 异步加载
   - 句柄模式 + 绑定对象模式
 - `AudioDataManager`
-  - 音量/开关持久化
-  - 写回后立即 `ApplyRuntimeSettings`
+  - 音量/开关持久化 + 监听者模式广播
 - `BinaryDataManager`
-  - MessagePack 二进制读写
-  - 供角色数据、音频设置等领域管理器复用
+  - MessagePack 二进制读写，已拆分为 5 个文件：
+    - `BinaryDataManager`（主类）、`MessagePackRuntime`（运行时封装）
+    - `ProjectSaveResolver`（Formatter 注册）、`GenericDataContainer`（异构容器）
+    - `BinaryFormatters`（6 个 MessagePack Formatter）
 - `AddressableManager`
-  - 资源加载唯一通道
+  - 资源加载唯一通道，`ResourceScope` 和 `ResourceLease` 已拆为独立文件
 
 ## 当前边界
 - 框架层不应该写角色专属策略

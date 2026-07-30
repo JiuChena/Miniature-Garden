@@ -1,7 +1,7 @@
 ﻿---
 tags: [module, data, persistence, economy]
 created: 2026-06-19
-updated: 2026-06-24
+updated: 2026-07-22
 ---
 
 # 数据与经济系统
@@ -19,6 +19,7 @@ updated: 2026-06-24
 - `Save<T>(folder, fileName, data)` → MessagePack 序列化 → `persistentDataPath/Data/`
 - `Load<T>(folder, fileName)` → 反序列化
 - 类型安全，拒绝 BinaryFormatter
+- 已拆分为 5 个文件：BinaryDataManager / MessagePackRuntime / ProjectSaveResolver / GenericDataContainer / BinaryFormatters
 
 ## CharacterDataManager
 - 管理每个角色的 CharacterData（characterLevel / attackLevel / talentLevel / burstLevel）

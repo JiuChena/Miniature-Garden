@@ -53,6 +53,7 @@ public class GeneralToonyShadeEditor : ShaderGUI
     MaterialProperty normalMap = null;
     MaterialProperty normalMapScale = null;
     MaterialProperty indirectLightScale = null;
+    MaterialProperty ambientScale = null;
 
     //卡通漫反射区
     MaterialProperty rampSmooth = null;
@@ -74,6 +75,7 @@ public class GeneralToonyShadeEditor : ShaderGUI
     MaterialProperty specularSize = null;
     MaterialProperty specularPosterizeSteps = null;
     MaterialProperty specularFaloff = null;
+    MaterialProperty additionalSpecularFaloff = null;
     MaterialProperty useSpecular = null;
     MaterialProperty useAdditionalLightsSpecular = null;
     MaterialProperty useEnvironmentReflection = null;
@@ -114,6 +116,7 @@ public class GeneralToonyShadeEditor : ShaderGUI
         normalMap = FindProperty("_NormalMap", props);
         normalMapScale = FindProperty("_NormalMapScale", props);
         indirectLightScale = FindProperty("_IndirectlightScale", props);
+        ambientScale = FindProperty("_AmbientScale", props);
 
         rampSmooth = FindProperty("_RampSmooth", props);
         mainLightDiffuseScale = FindProperty("_MainLightDiffuseScale", props);
@@ -132,6 +135,7 @@ public class GeneralToonyShadeEditor : ShaderGUI
         specularSize = FindProperty("_SpecularSize", props);
         specularPosterizeSteps = FindProperty("_SpecularPosterizeSteps", props);
         specularFaloff = FindProperty("_SpecularFaloff", props);
+        additionalSpecularFaloff = FindProperty("_AdditionalSpecularFaloff", props);
         useSpecular = FindProperty("_UseSpecular", props);
         useAdditionalLightsSpecular = FindProperty("_UseAdditionalLightsSpecular", props);
         useEnvironmentReflection = FindProperty("_UseEnvironmentReflection", props);
@@ -286,6 +290,7 @@ public class GeneralToonyShadeEditor : ShaderGUI
         m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Normal Map"), normalMap, normalMapScale);
         m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Occlusion Map"), occlusionMap, occlusionMapScale);
         DrawProperty(indirectLightScale);
+        DrawProperty(ambientScale);
 
         m_MaterialEditor.TextureScaleOffsetProperty(occlusionMap);
 
@@ -338,7 +343,7 @@ public class GeneralToonyShadeEditor : ShaderGUI
                 specularScale, specularSize, specularPosterizeSteps, specularFaloff
             }, "Specular Highlights");
 
-        DrawToggleBoxScope(useAdditionalLightsSpecular, new List<MaterialProperty>(), "Additional Lights Specular");
+        DrawToggleBoxScope(useAdditionalLightsSpecular, new List<MaterialProperty> { additionalSpecularFaloff }, "Additional Lights Specular");
 
         DrawToggleBoxScope(useEnvironmentReflection,
             new List<MaterialProperty>

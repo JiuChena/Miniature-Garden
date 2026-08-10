@@ -17,6 +17,7 @@ Shader "Toony/General Toony Shader"
         _HColor("亮面色", Color) = (1,1,1,1)
         _ShadowColor("阴影色", Color) = (0,0,0,1)
         _IndirectlightScale("间接光强度", Range(0, 1)) = 0.4
+        _AmbientScale("Ambient全局光照强度", Range(0, 2)) = 1
 
         [Toggle(_USEADDITIONALLIGHTDIFFUSE_ON)] _UseAdditionalLightsDiffuse("附加光漫反射", Float) = 1
         _AdditionalLightsScale("附加光强度", Range(0, 1)) = 1
@@ -28,6 +29,7 @@ Shader "Toony/General Toony Shader"
         _SpecularSize("高光大小", Range(0, 1)) = 0.5
         _SpecularPosterizeSteps("高光色阶数", Range(1, 15)) = 5
         _SpecularFaloff("高光衰减", Range(0, 1)) = 0
+        _AdditionalSpecularFaloff("附加光高光过渡", Range(0, 1)) = 1
         [Toggle(_USESPECULAR_ON)] _UseSpecular("高光", Float) = 1
         [Toggle(_USEADDITIONALLIGHTSPECULAR_ON)] _UseAdditionalLightsSpecular("附加光高光", Float) = 1
         [Toggle(_USEENVIRONMENTREFLETION_ON)] _UseEnvironmentReflection("环境反射", Float) = 0
@@ -145,6 +147,7 @@ Shader "Toony/General Toony Shader"
             float4 _HColor;
             float4 _ShadowColor;
             float _IndirectlightScale;
+            float _AmbientScale;
             //附加光源
             float _AdditionalLightsScale;
             float _AdditionalLightsFaloff;
@@ -155,6 +158,7 @@ Shader "Toony/General Toony Shader"
             float _SpecularSize;
             float _SpecularPosterizeSteps;
             float _SpecularFaloff;
+            float _AdditionalSpecularFaloff;
             float _EnvReflectionStrength;
             //边缘光
             half4 _RimColor;
@@ -187,10 +191,10 @@ Shader "Toony/General Toony Shader"
                 float4 uv : TEXCOORD5;
             };
             
-            half PosterizeFaloff( half IN, half Steps )
+            half PosterizeFaloff( half IN, half Steps, half Faloff )
             {
-                float minOut = 0.5 * _SpecularFaloff - 0.005;
-                float faloff = lerp(IN, smoothstep(minOut, 0.5, IN), _SpecularFaloff);
+                float minOut = 0.5 * Faloff - 0.005;
+                float faloff = lerp(IN, smoothstep(minOut, 0.5, IN), Faloff);
                 if(Steps < 1) return faloff;
                 else return floor(faloff / (1 / Steps)) * (1 / Steps);
             }
@@ -258,7 +262,7 @@ Shader "Toony/General Toony Shader"
                 
                 half shadowIntensity = _ShadowColor.a;
                 half3 shadowColorMixed = lerp(_HColor.rgb, _ShadowColor.rgb, shadowIntensity);
-                half3 stepShading = lerp(shadowColorMixed, _HColor.rgb, rampStep) * _MainLightDiffuseScale;
+                half3 stepShading = lerp(shadowColorMixed, _HColor.rgb * _MainLightDiffuseScale, rampStep);
                 
                 //板块3 主纹理 + AO
                 half4 mainTextureSample = tex2D(_Albedo, uv);
@@ -270,13 +274,14 @@ Shader "Toony/General Toony Shader"
                 Light mainLight = GetMainLight(shadowCoords);
                 MixRealtimeAndBakedGI(mainLight, worldNormal, bakedGI, half4(0,0,0,0));
                 half3 indirectDiffuseFactor = lerp(float3(0,0,0), bakedGI, _IndirectlightScale);
-                half4 indirectDiffuselight = mainTexture * half4(indirectDiffuseFactor, 0);
+                half4 indirectDiffuselight = mainTexture * half4(indirectDiffuseFactor * _AmbientScale, 0);
                 
                 //板块5 漫反射附加光
                 #ifdef _USEADDITIONALLIGHTDIFFUSE_ON
                 half3 lightWrapVector = half3(_DiffuseWrap, _DiffuseWrap, _DiffuseWrap);
-                half smoothMax = 1 - _AdditionalLightsScale * 0.9;
-                half smoothMin = smoothMax * _AdditionalLightsFaloff - 0.005;
+                half smoothMax = 0.5 + 0.5 * _AdditionalLightsFaloff;
+                half smoothMin = 0.5 - 0.5 * _AdditionalLightsFaloff;
+                smoothMax = max(smoothMin + 0.0001, smoothMax);
                 
                 half3 additionalDiffuse = 0;
                 for (int i = 0; i < GetAdditionalLightsCount(); i++)
@@ -294,6 +299,7 @@ Shader "Toony/General Toony Shader"
                     
                     additionalDiffuse += outColor;
                 }
+                additionalDiffuse *= _AdditionalLightsScale;
                 #else
                 half3 additionalDiffuse = 0;
                 #endif
@@ -314,7 +320,7 @@ Shader "Toony/General Toony Shader"
                 
                 nh0 = saturate(nh0 * (1.0 / (1 - specularSize)) - (specularSize / (1 - specularSize)));
                 
-                half specularPosterized = PosterizeFaloff(nh0, _SpecularPosterizeSteps);
+                half specularPosterized = PosterizeFaloff(nh0, _SpecularPosterizeSteps, _SpecularFaloff);
                 #else
                 half specularPosterized = 0;
                 #endif
@@ -331,7 +337,7 @@ Shader "Toony/General Toony Shader"
                     
                     half specularSize1 = clamp(1 - _SpecularSize * smoothness, 0.001, 0.999);
                     nh1 = saturate(nh1 * (1 / (1 - specularSize1)) - (specularSize1 / (1 - specularSize1)));
-                    half specularPosterized1 = PosterizeFaloff(nh1, _SpecularPosterizeSteps);
+                    half specularPosterized1 = PosterizeFaloff(nh1, _SpecularPosterizeSteps, _AdditionalSpecularFaloff);
                     
                     additionalSpecular += specularPosterized1 * light.color * (light.shadowAttenuation * light.distanceAttenuation);
                 }
@@ -404,6 +410,7 @@ Shader "Toony/General Toony Shader"
             float4 _HColor;
             float4 _ShadowColor;
             float _IndirectlightScale;
+            float _AmbientScale;
             //附加光源
             float _AdditionalLightsScale;
             float _AdditionalLightsFaloff;
@@ -414,6 +421,7 @@ Shader "Toony/General Toony Shader"
             float _SpecularSize;
             float _SpecularPosterizeSteps;
             float _SpecularFaloff;
+            float _AdditionalSpecularFaloff;
             float _EnvReflectionStrength;
             //边缘光
             half4 _RimColor;

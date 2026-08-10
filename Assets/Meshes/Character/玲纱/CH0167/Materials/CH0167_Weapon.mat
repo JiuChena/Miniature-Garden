@@ -88,6 +88,7 @@ Material:
     - _DiffusePosterizeOffset: 0
     - _DiffusePosterizePower: 1
     - _DiffusePosterizeSteps: 3
+    - _DiffuseWrap: 0
     - _DstBlend: 0
     - _Gloss: 5
     - _GlossMapScale: 1
@@ -105,6 +106,7 @@ Material:
     - _OutlineWidth: 0.005
     - _Parallax: 0.02
     - _RampDiffuseTextureLoaded: 1
+    - _RampSmooth: 0.01
     - _RimPower: 0.03
     - _RimSmoothness: 0
     - _RimSplitColor: 0
@@ -136,6 +138,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffuseColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _HColor: {r: 1, g: 1, b: 1, a: 1}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _RimColor: {r: 1, g: 1, b: 1, a: 1}
     - _RimShadowColor: {r: 0, g: 0.055514283, b: 0.9622641, a: 0}

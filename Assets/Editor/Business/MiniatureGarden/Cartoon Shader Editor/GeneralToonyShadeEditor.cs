@@ -56,11 +56,9 @@ public class GeneralToonyShadeEditor : ShaderGUI
     MaterialProperty ambientScale = null;
 
     //卡通漫反射区
-    MaterialProperty rampSmooth = null;
-    MaterialProperty diffuseMode = null;
     MaterialProperty diffuseSteps = null;
+    MaterialProperty diffuseSmooth = null;
     MaterialProperty mainLightDiffuseScale = null;
-    MaterialProperty stepOffset = null;
     MaterialProperty diffuseWrap = null;
     MaterialProperty highlightColor = null;
     MaterialProperty shadowColor = null;
@@ -68,7 +66,6 @@ public class GeneralToonyShadeEditor : ShaderGUI
     //附加光漫反射开关及其参数
     MaterialProperty useAdditionalLightsDiffuse = null;
     MaterialProperty additionalLightsScale = null;
-    MaterialProperty additionalLightsFaloff = null;
 
     //高光区
     MaterialProperty specularMap = null;
@@ -120,18 +117,15 @@ public class GeneralToonyShadeEditor : ShaderGUI
         indirectLightScale = FindProperty("_IndirectlightScale", props);
         ambientScale = FindProperty("_AmbientScale", props);
 
-        rampSmooth = FindProperty("_RampSmooth", props);
-        diffuseMode = FindProperty("_DiffuseMode", props);
         diffuseSteps = FindProperty("_DiffuseSteps", props);
+        diffuseSmooth = FindProperty("_DiffuseSmooth", props);
         mainLightDiffuseScale = FindProperty("_MainLightDiffuseScale", props);
-        stepOffset = FindProperty("_StepOffset", props);
         diffuseWrap = FindProperty("_DiffuseWrap", props);
         highlightColor = FindProperty("_HColor", props);
         shadowColor = FindProperty("_ShadowColor", props);
 
         useAdditionalLightsDiffuse = FindProperty("_UseAdditionalLightsDiffuse", props);
         additionalLightsScale = FindProperty("_AdditionalLightsScale", props);
-        additionalLightsFaloff = FindProperty("_AdditionalLightsFaloff", props);
 
         specularMap = FindProperty("_SpecularMap", props);
         specularColor = FindProperty("_SpecularColor", props);
@@ -316,33 +310,15 @@ public class GeneralToonyShadeEditor : ShaderGUI
         DrawBoxSpace("Toon Shading",
             new List<MaterialProperty>
             {
-                diffuseMode, diffuseWrap
+                diffuseSteps, diffuseSmooth, diffuseWrap, mainLightDiffuseScale, highlightColor, shadowColor
             });
-
-        bool isFloorMode = !Mathf.Approximately(diffuseMode.floatValue, 0f);
-        if (isFloorMode)
-        {
-            DrawBoxSpace("Floor Steps",
-                new List<MaterialProperty>
-                {
-                    diffuseSteps
-                });
-        }
-        else
-        {
-            DrawBoxSpace("Step Shading",
-                new List<MaterialProperty>
-                {
-                    rampSmooth, mainLightDiffuseScale, stepOffset, highlightColor, shadowColor
-                });
-        }
 
         EditorGUILayout.Space();
 
         DrawToggleBoxScope(useAdditionalLightsDiffuse,
             new List<MaterialProperty>
             {
-                additionalLightsScale, additionalLightsFaloff
+                additionalLightsScale
             }, "Additional Lights Diffuse");
 
         EditorGUILayout.Space(2);

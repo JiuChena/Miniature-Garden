@@ -10,12 +10,10 @@ Shader "Toony/General Toony Shader"
         _NormalMap("法线贴图", 2D) = "bump" {}
         _NormalMapScale("法线强度", Range(0, 1)) = 1
 
-        _RampSmooth("色带平滑", Range(0, 0.5)) = 0.01
         _MainLightDiffuseScale("主光漫反射强度", Range(0, 5)) = 1
-        _StepOffset("分界线偏移", Range(0, 1)) = 0
         _DiffuseWrap("漫反射包裹", Range(0, 1)) = 0
-        _DiffuseSteps("漫反射色阶化处理", Range(1, 50)) = 3
-        [KeywordEnum(Step,Floor)] _DiffuseMode("漫反射阴影模式", Float) = 0
+        _DiffuseSteps("漫反射色阶化处理", Range(2, 50)) = 3
+        _DiffuseSmooth("漫反射柔化", Range(0, 1)) = 0.2
         _HColor("亮面色", Color) = (1,1,1,1)
         _ShadowColor("阴影色", Color) = (0,0,0,1)
         _IndirectlightScale("间接光强度", Range(0, 1)) = 0.4
@@ -23,7 +21,6 @@ Shader "Toony/General Toony Shader"
 
         [Toggle(_USEADDITIONALLIGHTDIFFUSE_ON)] _UseAdditionalLightsDiffuse("附加光漫反射", Float) = 0
         _AdditionalLightsScale("附加光强度", Range(0, 1)) = 1
-        _AdditionalLightsFaloff("附加光过渡", Range(0, 1)) = 1
 
         _SpecularMap("高光贴图", 2D) = "white" {}
         _SpecularColor("高光颜色", Color) = (1,1,1,1)
@@ -131,7 +128,6 @@ Shader "Toony/General Toony Shader"
             #pragma shader_feature_local _USEADDITIONALLIGHTSPECULAR_ON
             #pragma shader_feature_local _USEENVIRONMENTREFLETION_ON
             #pragma shader_feature_local _USERIMLIGHT_ON
-            #pragma shader_feature_local _DIFFUSEMODE_STEP _DIFFUSEMODE_FLOOR
             
             CBUFFER_START(UnityPerMaterial)
             //主纹理
@@ -143,9 +139,8 @@ Shader "Toony/General Toony Shader"
             half4 _NormalMap_ST;
             float _NormalMapScale;
             //卡通漫反射
-            half _StepOffset;
             half _DiffuseSteps;
-            half _RampSmooth;
+            half _DiffuseSmooth;
             float _MainLightDiffuseScale;
             half _DiffuseWrap;
             float4 _HColor;
@@ -154,7 +149,6 @@ Shader "Toony/General Toony Shader"
             float _AmbientScale;
             //附加光源
             float _AdditionalLightsScale;
-            float _AdditionalLightsFaloff;
             //高光
             half4 _SpecularMap_ST;
             half4 _SpecularColor;
@@ -260,17 +254,14 @@ Shader "Toony/General Toony Shader"
                 //Lambert漫反射 -> 半Lambert漫反射 插值
                 half wrapNL = lerp(max(0, NL), (NL + 1) * 0.5, _DiffuseWrap);
                 
-                //计算阴影部分亮度（Step / Floor 双模式）
-                half rampStep;
-                #if defined(_DIFFUSEMODE_FLOOR)
-                half floorSteps = max(_DiffuseSteps, 1);
-                rampStep = floor(wrapNL * floorSteps) / floorSteps;
+                //计算阴影部分亮度（色阶量化 + 边缘柔滑：N=2 即 Step 硬分界，N=50 逼近连续）
+                half steps = max(round(_DiffuseSteps), 2);
+                half bandPos = wrapNL * (steps - 1);
+                half bandIdx = floor(bandPos);
+                half bandFrac = frac(bandPos);
+                half bandBlend = smoothstep(max(1.0 - _DiffuseSmooth, 0.0001), 1.0, bandFrac);
+                half rampStep = saturate((bandIdx + bandBlend) / (steps - 1));
                 rampStep *= lightShadowAttenuation;
-                #else
-                half rampThreshold = _StepOffset + 0.5;
-                rampStep = smoothstep(rampThreshold - _RampSmooth, rampThreshold + _RampSmooth, wrapNL);
-                rampStep *= lightShadowAttenuation;
-                #endif
                 
                 //计算暗部阴影色、根据当前亮度得出该像素应该是算出的暗部阴影色还是亮部色进行插值
                 half shadowIntensity = _ShadowColor.a;
@@ -291,8 +282,9 @@ Shader "Toony/General Toony Shader"
                 //漫反射附加光光照计算
                 #ifdef _USEADDITIONALLIGHTDIFFUSE_ON
                 half3 lightWrapVector = _DiffuseWrap.xxx;
-                half smoothMax = 0.5 + 0.5 * _AdditionalLightsFaloff;
-                half smoothMin = 0.5 - 0.5 * _AdditionalLightsFaloff;
+                //附加光过渡复用主光柔化 _DiffuseSmooth
+                half smoothMax = 0.5 + 0.5 * _DiffuseSmooth;
+                half smoothMin = 0.5 - 0.5 * _DiffuseSmooth;
                 smoothMax = max(smoothMin + 0.0001, smoothMax);
                 
                 half3 additionalDiffuse = 0;
@@ -415,9 +407,8 @@ Shader "Toony/General Toony Shader"
             half4 _NormalMap_ST;
             float _NormalMapScale;
             //卡通漫反射
-            half _StepOffset;
             half _DiffuseSteps;
-            half _RampSmooth;
+            half _DiffuseSmooth;
             float _MainLightDiffuseScale;
             half _DiffuseWrap;
             float4 _HColor;
@@ -426,7 +417,6 @@ Shader "Toony/General Toony Shader"
             float _AmbientScale;
             //附加光源
             float _AdditionalLightsScale;
-            float _AdditionalLightsFaloff;
             //高光
             half4 _SpecularMap_ST;
             half4 _SpecularColor;

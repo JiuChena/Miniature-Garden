@@ -57,6 +57,8 @@ public class GeneralToonyShadeEditor : ShaderGUI
 
     //卡通漫反射区
     MaterialProperty rampSmooth = null;
+    MaterialProperty diffuseMode = null;
+    MaterialProperty diffuseSteps = null;
     MaterialProperty mainLightDiffuseScale = null;
     MaterialProperty stepOffset = null;
     MaterialProperty diffuseWrap = null;
@@ -119,6 +121,8 @@ public class GeneralToonyShadeEditor : ShaderGUI
         ambientScale = FindProperty("_AmbientScale", props);
 
         rampSmooth = FindProperty("_RampSmooth", props);
+        diffuseMode = FindProperty("_DiffuseMode", props);
+        diffuseSteps = FindProperty("_DiffuseSteps", props);
         mainLightDiffuseScale = FindProperty("_MainLightDiffuseScale", props);
         stepOffset = FindProperty("_StepOffset", props);
         diffuseWrap = FindProperty("_DiffuseWrap", props);
@@ -312,8 +316,26 @@ public class GeneralToonyShadeEditor : ShaderGUI
         DrawBoxSpace("Toon Shading",
             new List<MaterialProperty>
             {
-                rampSmooth, mainLightDiffuseScale, stepOffset, diffuseWrap, highlightColor, shadowColor
+                diffuseMode, diffuseWrap
             });
+
+        bool isFloorMode = !Mathf.Approximately(diffuseMode.floatValue, 0f);
+        if (isFloorMode)
+        {
+            DrawBoxSpace("Floor Steps",
+                new List<MaterialProperty>
+                {
+                    diffuseSteps
+                });
+        }
+        else
+        {
+            DrawBoxSpace("Step Shading",
+                new List<MaterialProperty>
+                {
+                    rampSmooth, mainLightDiffuseScale, stepOffset, highlightColor, shadowColor
+                });
+        }
 
         EditorGUILayout.Space();
 

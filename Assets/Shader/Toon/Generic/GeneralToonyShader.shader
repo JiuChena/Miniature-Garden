@@ -11,15 +11,17 @@ Shader "Toony/General Toony Shader"
         _NormalMapScale("法线强度", Range(0, 1)) = 1
 
         _RampSmooth("色带平滑", Range(0, 0.5)) = 0.01
-        _MainLightDiffuseScale("主光漫反射强度", Range(0, 2)) = 1
+        _MainLightDiffuseScale("主光漫反射强度", Range(0, 5)) = 1
         _StepOffset("分界线偏移", Range(0, 1)) = 0
         _DiffuseWrap("漫反射包裹", Range(0, 1)) = 0
+        _DiffuseSteps("漫反射色阶化处理", Range(1, 50)) = 3
+        [KeywordEnum(Step,Floor)] _DiffuseMode("漫反射阴影模式", Float) = 0
         _HColor("亮面色", Color) = (1,1,1,1)
         _ShadowColor("阴影色", Color) = (0,0,0,1)
         _IndirectlightScale("间接光强度", Range(0, 1)) = 0.4
         _AmbientScale("Ambient全局光照强度", Range(0, 2)) = 1
 
-        [Toggle(_USEADDITIONALLIGHTDIFFUSE_ON)] _UseAdditionalLightsDiffuse("附加光漫反射", Float) = 1
+        [Toggle(_USEADDITIONALLIGHTDIFFUSE_ON)] _UseAdditionalLightsDiffuse("附加光漫反射", Float) = 0
         _AdditionalLightsScale("附加光强度", Range(0, 1)) = 1
         _AdditionalLightsFaloff("附加光过渡", Range(0, 1)) = 1
 
@@ -129,6 +131,7 @@ Shader "Toony/General Toony Shader"
             #pragma shader_feature_local _USEADDITIONALLIGHTSPECULAR_ON
             #pragma shader_feature_local _USEENVIRONMENTREFLETION_ON
             #pragma shader_feature_local _USERIMLIGHT_ON
+            #pragma shader_feature_local _DIFFUSEMODE_STEP _DIFFUSEMODE_FLOOR
             
             CBUFFER_START(UnityPerMaterial)
             //主纹理
@@ -141,6 +144,7 @@ Shader "Toony/General Toony Shader"
             float _NormalMapScale;
             //卡通漫反射
             half _StepOffset;
+            half _DiffuseSteps;
             half _RampSmooth;
             float _MainLightDiffuseScale;
             half _DiffuseWrap;
@@ -240,8 +244,10 @@ Shader "Toony/General Toony Shader"
                 //漫反射主光、色阶化处理
                 half NL = dot(worldNormal, _MainLightPosition.xyz);
                 
-                half lightShadowAttenuation = 0;
+                //计算阴影像素所在位置、计算该像素所受光照（Light）、计算该像素的光照衰减
                 half4 shadowCoords = 0;
+                Light mainLight = GetMainLight(shadowCoords);
+                half lightShadowAttenuation = mainLight.shadowAttenuation * mainLight.distanceAttenuation;
                 {
                     #if SHADOWS_SCREEN
                     half4 clipPosition = TransformWorldToHClip(o.worldPosition);
@@ -249,36 +255,42 @@ Shader "Toony/General Toony Shader"
                     #else
                     shadowCoords = TransformWorldToShadowCoord(o.worldPosition);
                     #endif
-                    
-                    Light mainLight = GetMainLight(shadowCoords);
-                    lightShadowAttenuation = mainLight.shadowAttenuation * mainLight.distanceAttenuation;
                 }
                 
+                //Lambert漫反射 -> 半Lambert漫反射 插值
                 half wrapNL = lerp(max(0, NL), (NL + 1) * 0.5, _DiffuseWrap);
                 
-                half rampThreshold = _StepOffset + 0.5;
-                half rampStep = smoothstep(rampThreshold - _RampSmooth, rampThreshold + _RampSmooth, wrapNL);
+                //计算阴影部分亮度（Step / Floor 双模式）
+                half rampStep;
+                #if defined(_DIFFUSEMODE_FLOOR)
+                half floorSteps = max(_DiffuseSteps, 1);
+                rampStep = floor(wrapNL * floorSteps) / floorSteps;
                 rampStep *= lightShadowAttenuation;
+                #else
+                half rampThreshold = _StepOffset + 0.5;
+                rampStep = smoothstep(rampThreshold - _RampSmooth, rampThreshold + _RampSmooth, wrapNL);
+                rampStep *= lightShadowAttenuation;
+                #endif
                 
+                //计算暗部阴影色、根据当前亮度得出该像素应该是算出的暗部阴影色还是亮部色进行插值
                 half shadowIntensity = _ShadowColor.a;
                 half3 shadowColorMixed = lerp(_HColor.rgb, _ShadowColor.rgb, shadowIntensity);
-                half3 stepShading = lerp(shadowColorMixed, _HColor.rgb * _MainLightDiffuseScale, rampStep);
+                half3 mainDiffuse = lerp(shadowColorMixed, _HColor.rgb, rampStep) * _MainLightColor.rgb * _MainLightDiffuseScale;
                 
-                //板块3 主纹理 + AO
+                //主纹理取色、主纹理Mask遮罩取遮蔽（lerp(1, 1 - mask.g, scale)）、混合主纹理色
                 half4 mainTextureSample = tex2D(_Albedo, uv);
-                half occlusion = lerp(1, tex2D(_OcclusionMap, uv).r, _OcclusionMapScale);
+                half occlusion = lerp(1, 1 - tex2D(_OcclusionMap, uv).g, _OcclusionMapScale);
                 half4 mainTexture = (_Color * mainTextureSample * half4(occlusion, occlusion, occlusion, 1));
                 
-                //板块4 间接光（环境漫反射）
+                //AO全局光照（环境光、光照探针等）
                 half3 bakedGI = SampleSH(worldNormal);
-                Light mainLight = GetMainLight(shadowCoords);
-                MixRealtimeAndBakedGI(mainLight, worldNormal, bakedGI, half4(0,0,0,0));
-                half3 indirectDiffuseFactor = lerp(float3(0,0,0), bakedGI, _IndirectlightScale);
-                half4 indirectDiffuselight = mainTexture * half4(indirectDiffuseFactor * _AmbientScale, 0);
+                MixRealtimeAndBakedGI(mainLight, worldNormal, bakedGI);
+                half3 ambientColorFactor = lerp(float3(0,0,0), bakedGI, _IndirectlightScale);
+                half4 finalAmbientColor = mainTexture * half4(ambientColorFactor * _AmbientScale, 0);
                 
-                //板块5 漫反射附加光
+                //漫反射附加光光照计算
                 #ifdef _USEADDITIONALLIGHTDIFFUSE_ON
-                half3 lightWrapVector = half3(_DiffuseWrap, _DiffuseWrap, _DiffuseWrap);
+                half3 lightWrapVector = _DiffuseWrap.xxx;
                 half smoothMax = 0.5 + 0.5 * _AdditionalLightsFaloff;
                 half smoothMin = 0.5 - 0.5 * _AdditionalLightsFaloff;
                 smoothMax = max(smoothMin + 0.0001, smoothMax);
@@ -304,15 +316,15 @@ Shader "Toony/General Toony Shader"
                 half3 additionalDiffuse = 0;
                 #endif
                 
-                //板块6 漫反射组装
-                half3 finalDiffuse = (stepShading + additionalDiffuse) * mainTexture.rgb + indirectDiffuselight.rgb;
+                //漫反射最终组装（Step / Floor 双模式统一）
+                half3 finalDiffuse = (mainDiffuse + additionalDiffuse) * mainTexture.rgb + finalAmbientColor.rgb;
                 
-                //板块7 高光主光 + 色阶化
+                //高光主光计算、高光主光色阶化处理
                 float3 worldViewDir = normalize(_WorldSpaceCameraPos.xyz - o.worldPosition);
                 half smoothness = tex2D(_SpecularMap, uv).a * _SpecularScale;
                 
                 #ifdef _USESPECULAR_ON
-                half3 mainLightDir = normalize(_MainLightPosition.xyz);
+                half3 mainLightDir = normalize(GetMainLight().direction);
                 half3 halfDir = normalize(mainLightDir + worldViewDir);
                 half nh0 = saturate(dot(worldNormal, halfDir));
                 
@@ -404,6 +416,7 @@ Shader "Toony/General Toony Shader"
             float _NormalMapScale;
             //卡通漫反射
             half _StepOffset;
+            half _DiffuseSteps;
             half _RampSmooth;
             float _MainLightDiffuseScale;
             half _DiffuseWrap;

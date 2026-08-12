@@ -254,7 +254,7 @@ Shader "Toony/General Toony Shader"
                 //Lambert漫反射 -> 半Lambert漫反射 插值
                 half wrapNL = lerp(max(0, NL), (NL + 1) * 0.5, _DiffuseWrap);
                 
-                //计算阴影部分亮度（色阶量化 + 边缘柔滑：N=2 即 Step 硬分界，N=50 逼近连续）
+                //计算阴影部分亮度（色阶量化 + 边缘柔滑：N=2 即 Step 硬分界，N=50 逼近连续），计算出该像素色阶阶段（整数部分）+ 像素的该色阶阶段的渐变化程度（柔化小数部分），最后除以steps - 1归一化处理得到应有的亮度
                 half steps = max(round(_DiffuseSteps), 2);
                 half bandPos = wrapNL * (steps - 1);
                 half bandIdx = floor(bandPos);
@@ -318,30 +318,30 @@ Shader "Toony/General Toony Shader"
                 #ifdef _USESPECULAR_ON
                 half3 mainLightDir = normalize(GetMainLight().direction);
                 half3 halfDir = normalize(mainLightDir + worldViewDir);
-                half nh0 = saturate(dot(worldNormal, halfDir));
+                half NH0 = saturate(dot(worldNormal, halfDir));
                 
                 half specularSize = clamp(1 - _SpecularSize * smoothness, 0.001, 0.999);
                 
-                nh0 = saturate(nh0 * (1.0 / (1 - specularSize)) - (specularSize / (1 - specularSize)));
+                NH0 = saturate(NH0 * (1.0 / (1 - specularSize)) - (specularSize / (1 - specularSize)));
                 
-                half specularPosterized = PosterizeFaloff(nh0, _SpecularPosterizeSteps, _SpecularFaloff);
+                half specularPosterized = PosterizeFaloff(NH0, _SpecularPosterizeSteps, _SpecularFaloff);
                 #else
                 half specularPosterized = 0;
                 #endif
                 
-                //板块8 高光附加光
+                //高光附加光
                 #ifdef _USEADDITIONALLIGHTSPECULAR_ON
                 half3 additionalSpecular = 0;
                 for (int j = 0; j < GetAdditionalLightsCount(); j++)
                 {
                     Light light = GetAdditionalLight(j, o.worldPosition);
                     half3 lightDir = normalize(light.direction);
-                    half3 hDir = normalize(lightDir + worldViewDir);
-                    half nh1 = saturate(dot(worldNormal, hDir));
+                    half3 halfDir = normalize(lightDir + worldViewDir);
+                    half NH1 = saturate(dot(worldNormal, halfDir));
                     
                     half specularSize1 = clamp(1 - _SpecularSize * smoothness, 0.001, 0.999);
-                    nh1 = saturate(nh1 * (1 / (1 - specularSize1)) - (specularSize1 / (1 - specularSize1)));
-                    half specularPosterized1 = PosterizeFaloff(nh1, _SpecularPosterizeSteps, _AdditionalSpecularFaloff);
+                    NH1 = saturate(NH1 * (1 / (1 - specularSize1)) - (specularSize1 / (1 - specularSize1)));
+                    half specularPosterized1 = PosterizeFaloff(NH1, _SpecularPosterizeSteps, _AdditionalSpecularFaloff);
                     
                     additionalSpecular += specularPosterized1 * light.color * (light.shadowAttenuation * light.distanceAttenuation);
                 }
@@ -349,7 +349,7 @@ Shader "Toony/General Toony Shader"
                 half3 additionalSpecular = 0;
                 #endif
                 
-                //板块9 环境反射
+                //环境反射
                 #ifdef _USEENVIRONMENTREFLETION_ON
                 float3 reflectVector = reflect(-worldViewDir, worldNormal);
                 float3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, 1.0 - smoothness, 0.75);
@@ -358,14 +358,14 @@ Shader "Toony/General Toony Shader"
                 half3 envReflection = 0;
                 #endif
                 
-                //板块10 高光组装
+                //高光组装
                 #ifdef _USESPECULAR_ON
                 half3 specularColor = (specularPosterized * _MainLightColor.rgb + additionalSpecular) * _SpecularColor.rgb + envReflection;
                 #else
                 half3 specularColor = envReflection;
                 #endif
                 
-                //板块11 边缘光
+                //边缘光
                 #ifdef _USERIMLIGHT_ON
                 half ndv = 1 - max(0, dot( normalize( worldNormal ), worldViewDir ));
                 half rimLight = smoothstep(_RimMin, _RimMax, ndv);
@@ -374,7 +374,7 @@ Shader "Toony/General Toony Shader"
                 half3 rimFinal = 0;
                 #endif
                 
-                //板块12 最终输出
+                //最终输出
                 half4 litColorFinal = half4(finalDiffuse + specularColor + rimFinal, 1);
                 
                 return litColorFinal;
@@ -382,122 +382,10 @@ Shader "Toony/General Toony Shader"
             
             ENDHLSL
         }
-        
-        //阴影投射通道
-        Pass
-        {
-            Name "ShadowCaster"
-            Tags { "LightMode"="ShadowCaster" }
-            ZWrite On
-            ZTest LEqual
-            ColorMask 0
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-            float3 _LightDirection;
-            CBUFFER_START(UnityPerMaterial)
-            //主纹理
-            half4 _Albedo_ST;
-            half4 _OcclusionMap_ST;
-            float4 _Color;
-            float _OcclusionMapScale;
-            //法线
-            half4 _NormalMap_ST;
-            float _NormalMapScale;
-            //卡通漫反射
-            half _DiffuseSteps;
-            half _DiffuseSmooth;
-            float _MainLightDiffuseScale;
-            half _DiffuseWrap;
-            float4 _HColor;
-            float4 _ShadowColor;
-            float _IndirectlightScale;
-            float _AmbientScale;
-            //附加光源
-            float _AdditionalLightsScale;
-            //高光
-            half4 _SpecularMap_ST;
-            half4 _SpecularColor;
-            float _SpecularScale;
-            float _SpecularSize;
-            float _SpecularPosterizeSteps;
-            float _SpecularFaloff;
-            float _AdditionalSpecularFaloff;
-            float _EnvReflectionStrength;
-            //边缘光
-            half4 _RimColor;
-            half4 _RimColorMask;
-            float _RimMin;
-            float _RimMax;
-            CBUFFER_END
-            
-            sampler2D _Albedo;
-            sampler2D _OcclusionMap;
-            sampler2D _NormalMap;
-            sampler2D _SpecularMap;
-            struct VertexInput
-            {
-                float4 vertex : POSITION;
-                float3 normal : NORMAL;
-            };
-            struct VertexOutput
-            {
-                float4 clipPosition : SV_POSITION;
-            };
-            VertexOutput vert(VertexInput v)
-            {
-                VertexOutput o;
-                float3 positionWS = TransformObjectToWorld(v.vertex.xyz);
-                float3 normalWS = TransformObjectToWorldNormal(v.normal);
-                float4 clipPosition = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
-                #if UNITY_REVERSED_Z
-                clipPosition.z = min(clipPosition.z, clipPosition.w * UNITY_NEAR_CLIP_VALUE);
-                #else
-                clipPosition.z = max(clipPosition.z, clipPosition.w * UNITY_NEAR_CLIP_VALUE);
-                #endif
-                o.clipPosition = clipPosition;
-                return o;
-            }
-            half4 frag(VertexOutput o) : SV_Target
-            {
-                return 0;
-            }
-            ENDHLSL
-        }
-        
-        //深度写入通道
-        Pass
-        {
-            Name "DepthOnly"
-            Tags { "LightMode"="DepthOnly" }
-            ZWrite On
-            ColorMask 0
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            struct VertexInput
-            {
-                float4 vertex : POSITION;
-            };
-            struct VertexOutput
-            {
-                float4 clipPosition : SV_POSITION;
-            };
-            VertexOutput vert(VertexInput v)
-            {
-                VertexOutput o;
-                o.clipPosition = TransformObjectToHClip(v.vertex.xyz);
-                return o;
-            }
-            half4 frag(VertexOutput o) : SV_Target
-            {
-                return 0;
-            }
-            ENDHLSL
-        }
+
+        //阴影投射与深度写入
+        UsePass "Universal Render Pipeline/Lit/ShadowCaster"
+        UsePass "Universal Render Pipeline/Lit/DepthOnly"
     }
     CustomEditor "GeneralToonyShadeEditor"
     Fallback "Hidden/InternalErrorShader"

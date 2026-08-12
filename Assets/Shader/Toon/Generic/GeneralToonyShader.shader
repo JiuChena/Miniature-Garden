@@ -4,7 +4,7 @@ Shader "Toony/General Toony Shader"
     {
         _Albedo("主纹理图", 2D) = "white" {}
         _Color("主色", Color) = (1,1,1,1)
-        _OcclusionMap("遮蔽贴图", 2D) = "white" {}
+        _OcclusionMap("遮蔽贴图", 2D) = "black" {}
         _OcclusionMapScale("遮蔽强度", Range(0, 1)) = 1
 
         _NormalMap("法线贴图", 2D) = "bump" {}

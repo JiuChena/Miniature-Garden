@@ -44,6 +44,7 @@ Shader "Toony/General Toony Shader"
         _OutlineColor("描边颜色", Color) = (0,0,0,1)
         _OutlineWidth("描边宽度", Range(0, 0.01)) = 0.005
         _AdaptiveWidth("自适应描边宽度", Range(0, 1)) = 0.3
+        _OutlineMaxScale("描边自适应最大宽度", Range(1, 100)) = 20
     }
     SubShader
     {
@@ -72,6 +73,7 @@ Shader "Toony/General Toony Shader"
             half4 _OutlineColor;
             float _OutlineWidth;
             float _AdaptiveWidth;
+            float _OutlineMaxScale;
             CBUFFER_END
             
             struct VertexInput
@@ -90,7 +92,8 @@ Shader "Toony/General Toony Shader"
                 VertexOutput o;
 #ifdef _USEOUTLINE_ON
                 float3 worldPos = TransformObjectToWorld(v.vertex).xyz;
-                float lerpResult = lerp(1.0, distance(_WorldSpaceCameraPos, worldPos), _AdaptiveWidth);
+                //距离等比自适应 + 上下限钳制：防止描边随距离无限变大（下限 1.0 = 基础宽度，上限 _OutlineMaxScale）
+                float lerpResult = clamp(lerp(1.0, distance(_WorldSpaceCameraPos, worldPos), _AdaptiveWidth), 1.0, _OutlineMaxScale);
                 half3 finalOffset = lerpResult * (v.normal * _OutlineWidth);
                 v.vertex.xyz += finalOffset;
 #endif

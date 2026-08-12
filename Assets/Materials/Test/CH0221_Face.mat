@@ -160,6 +160,7 @@ Material:
     - _NormalMapStrength: 1
     - _OcclusionMapScale: 0
     - _OcclusionStrength: 0.3
+    - _OutlineMaxScale: 5
     - _OutlineTextureStrength: 0.6
     - _OutlineType: 0
     - _OutlineWidth: 0.00246

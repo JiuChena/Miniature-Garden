@@ -38,6 +38,7 @@ Shader "Toony/CharacterEyeMouth"
         Pass
         {
             Tags { "LightMode"="UniversalForward" }
+            Cull Off
 
             HLSLPROGRAM
             

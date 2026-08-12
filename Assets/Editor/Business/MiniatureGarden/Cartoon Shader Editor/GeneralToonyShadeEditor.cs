@@ -92,6 +92,7 @@ public class GeneralToonyShadeEditor : ShaderGUI
     MaterialProperty outlineColor = null;
     MaterialProperty outlineWidth = null;
     MaterialProperty adaptiveWidth = null;
+    MaterialProperty outlineMaxScale = null;
 
     #endregion
 
@@ -149,6 +150,7 @@ public class GeneralToonyShadeEditor : ShaderGUI
         outlineColor = FindProperty("_OutlineColor", props);
         outlineWidth = FindProperty("_OutlineWidth", props);
         adaptiveWidth = FindProperty("_AdaptiveWidth", props);
+        outlineMaxScale = FindProperty("_OutlineMaxScale", props);
     }
 
     /// <summary>
@@ -381,7 +383,7 @@ public class GeneralToonyShadeEditor : ShaderGUI
         DrawToggleBoxScope(useOutline,
             new List<MaterialProperty>
             {
-                outlineColor, outlineWidth, adaptiveWidth
+                outlineColor, outlineWidth, adaptiveWidth, outlineMaxScale
             }, "Outline");
     }
 
